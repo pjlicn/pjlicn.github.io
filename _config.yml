@@ -9,9 +9,9 @@ title                    : "Li's Studies on Hydrology"
 title_separator          : "-"
 name                     : &name "Peijun Li"
 description              : &description "personal description"
-url                      : https://percyleemaxwell.github.io
+url                      : https://pjlicn.github.io
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
-repository               : "PercyLeeMaxWell/PercyLeeMaxWell.github.io"
+repository               : "pjlicn/pjlicn.github.io"
 teaser                   :  # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
 breadcrumbs              : false # true, false (default)
 words_per_minute         : 160

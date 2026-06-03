@@ -37,8 +37,8 @@ Prospects
 
 Quick Look
 ======
-[Publicatioins](https://percyleemaxwell.github.io/publications/)  
-[Contacts](https://percyleemaxwell.github.io/contacts/)
+ [Publicatioins](/publications/)  
+ [Contacts](/contacts/)
 
 
 
@@ -62,5 +62,4 @@ Hydrology and Earth System Sciences, 1.
 Water Resources Research, 3.
 Communications Earth & Environment, 1. 
 Journal of Hydrologic Engineering, 1.-->
-
 
