@@ -24,6 +24,8 @@ Work experience
 [MHPI](https://sites.google.com/view/mhpi/team) Lab, Department of Civil and Environmental Engineering  
 Penn State Univeristy, State College, PA
 
+* Member of Youth Editorial Board of *Journal of Groundwater Science and Engineering*
+
   
 Academic Awards
 ======
