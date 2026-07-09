@@ -91,14 +91,8 @@
 
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', onSystemThemeChange);
-      window.addEventListener('beforeunload', function () {
-        mediaQuery.removeEventListener('change', onSystemThemeChange);
-      });
     } else if (typeof mediaQuery.addListener === 'function') {
       mediaQuery.addListener(onSystemThemeChange);
-      window.addEventListener('beforeunload', function () {
-        mediaQuery.removeListener(onSystemThemeChange);
-      });
     }
   }
 
