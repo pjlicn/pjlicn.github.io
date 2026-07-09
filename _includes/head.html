@@ -28,9 +28,8 @@
     }
 
     const hasUserPreference = storedTheme === 'light' || storedTheme === 'dark';
-    const theme = hasUserPreference
-      ? storedTheme
-      : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = hasUserPreference ? storedTheme : (prefersDark ? 'dark' : 'light');
 
     root.setAttribute('data-theme', theme);
     root.style.colorScheme = theme;
