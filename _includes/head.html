@@ -24,7 +24,7 @@
     try {
       storedTheme = localStorage.getItem(storageKey);
     } catch (e) {
-      storedTheme = null;
+      // localStorage may be unavailable (private mode / blocked)
     }
 
     var hasUserPreference = storedTheme === 'light' || storedTheme === 'dark';
