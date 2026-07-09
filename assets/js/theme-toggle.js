@@ -1,11 +1,11 @@
 (function () {
-  var storageKey = 'theme-preference';
-  var root = document.documentElement;
-  var mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  const storageKey = 'theme-preference';
+  const root = document.documentElement;
+  const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
   function readStoredTheme() {
     try {
-      var value = localStorage.getItem(storageKey);
+      const value = localStorage.getItem(storageKey);
       return value === 'light' || value === 'dark' ? value : null;
     } catch (e) {
       return null;
@@ -42,15 +42,15 @@
   }
 
   function updateToggleButton(theme) {
-    var isDark = theme === 'dark';
-    var toggle = document.querySelector('.js-theme-toggle');
+    const isDark = theme === 'dark';
+    const toggle = document.querySelector('.js-theme-toggle');
 
     if (!toggle) {
       return;
     }
 
-    var icon = toggle.querySelector('.theme-toggle__icon');
-    var label = toggle.querySelector('.theme-toggle__label');
+    const icon = toggle.querySelector('.theme-toggle__icon');
+    const label = toggle.querySelector('.theme-toggle__label');
 
     toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
     toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
@@ -65,7 +65,7 @@
   }
 
   function initializeToggle() {
-    var toggle = document.querySelector('.js-theme-toggle');
+    const toggle = document.querySelector('.js-theme-toggle');
 
     if (!toggle) {
       return;
@@ -74,16 +74,14 @@
     updateToggleButton(currentTheme());
 
     toggle.addEventListener('click', function () {
-      var nextTheme = currentTheme() === 'dark' ? 'light' : 'dark';
+      const nextTheme = currentTheme() === 'dark' ? 'light' : 'dark';
       writeStoredTheme(nextTheme);
       setTheme(nextTheme, 'user');
     });
   }
 
-  var onSystemThemeChange = null;
-
   if (mediaQuery) {
-    onSystemThemeChange = function () {
+    const onSystemThemeChange = function () {
       if (!readStoredTheme()) {
         setTheme(preferredSystemTheme(), 'system');
       }

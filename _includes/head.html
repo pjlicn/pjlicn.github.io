@@ -17,9 +17,9 @@
 
 <script>
   (function () {
-    var storageKey = 'theme-preference';
-    var root = document.documentElement;
-    var storedTheme = null;
+    const storageKey = 'theme-preference';
+    const root = document.documentElement;
+    let storedTheme = null;
 
     try {
       storedTheme = localStorage.getItem(storageKey);
@@ -27,8 +27,8 @@
       // localStorage may be unavailable (private mode / blocked)
     }
 
-    var hasUserPreference = storedTheme === 'light' || storedTheme === 'dark';
-    var theme = hasUserPreference
+    const hasUserPreference = storedTheme === 'light' || storedTheme === 'dark';
+    const theme = hasUserPreference
       ? storedTheme
       : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
