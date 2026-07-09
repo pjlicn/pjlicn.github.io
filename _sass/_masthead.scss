@@ -32,6 +32,12 @@
 }
 
 .masthead__menu {
+  display: flex;
+  align-items: center;
+
+  .greedy-nav {
+    flex: 1 1 auto;
+  }
 
   ul {
     margin: 0;
