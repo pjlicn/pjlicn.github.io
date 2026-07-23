@@ -41,3 +41,12 @@
     "vendor/font-awesome/brands",
     "vendor/magnific-popup/magnific-popup"
 ;
+
+  .author__urls.social-icons i {
+    color: var(--global-text-color-light);
+  }
+
+  .author__urls.social-icons a:hover i,
+  .author__urls.social-icons a:focus i {
+    color: var(--global-link-color-hover);
+  }
