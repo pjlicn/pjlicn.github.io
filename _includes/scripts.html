@@ -1,4 +1,66 @@
 <script src="{{ base_path }}/assets/js/main.min.js"></script>
+<script>
+  (function () {
+    var storageKey = 'theme';
+
+    function preferredTheme() {
+      var saved = localStorage.getItem(storageKey);
+      if (saved === 'dark' || saved === 'light') {
+        return saved;
+      }
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      var isDark = theme === 'dark';
+      var root = document.documentElement;
+      var icon = document.getElementById('theme-icon');
+
+      if (isDark) {
+        root.setAttribute('data-theme', 'dark');
+      } else {
+        root.removeAttribute('data-theme');
+      }
+
+      if (icon) {
+        icon.classList.toggle('fa-sun', !isDark);
+        icon.classList.toggle('fa-moon', isDark);
+      }
+    }
+
+    function initializeThemeToggle() {
+      applyTheme(preferredTheme());
+
+      var toggle = document.getElementById('theme-toggle');
+      if (!toggle) {
+        return;
+      }
+
+      /* Capture the click so a failing or duplicate legacy jQuery handler cannot
+         prevent or reverse the built-in theme change. */
+      toggle.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        var nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(storageKey, nextTheme);
+        applyTheme(nextTheme);
+      }, true);
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (event) {
+        if (!localStorage.getItem(storageKey)) {
+          applyTheme(event.matches ? 'dark' : 'light');
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeThemeToggle);
+    } else {
+      initializeThemeToggle();
+    }
+  }());
+</script>
 
 {% include analytics.html %}
 
