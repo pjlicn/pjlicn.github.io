@@ -35,14 +35,15 @@
     "layout/page",
     "layout/archive",
     "layout/sidebar",
-    "vendor/magnific-popup/magnific-popup"
+    "vendor/magnific-popup/magnific-popup",
+    "include/responsive-navigation"
 ;
 
-  .author__urls.social-icons i {
-    color: var(--global-text-color-light);
-  }
+.author__urls.social-icons i {
+  color: var(--global-text-color-light);
+}
 
-  .author__urls.social-icons a:hover i,
-  .author__urls.social-icons a:focus i {
-    color: var(--global-link-color-hover);
-  }
+.author__urls.social-icons a:hover i,
+.author__urls.social-icons a:focus i {
+  color: var(--global-link-color-hover);
+}
