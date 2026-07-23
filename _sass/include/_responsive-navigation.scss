@@ -1,6 +1,4 @@
-/* Responsive overrides for the greedy navigation.
-   JavaScript determines which links overflow; these rules ensure the menu
-   button and its dropdown remain visible and touch-friendly on narrow screens. */
+/* Responsive corrections for the original Academic Pages greedy navigation. */
 
 .greedy-nav {
   min-width: 0;
@@ -20,6 +18,8 @@
   }
 }
 
+/* The original plugin measures the actual visible-links width. Do not reserve
+   a fixed mobile width or force all links into the dropdown. */
 @media screen and (max-width: 760px) {
   .greedy-nav {
     padding-right: 0;
@@ -27,14 +27,11 @@
     .visible-links {
       max-width: none;
     }
-
-    .hidden-links {
-      right: 0;
-      width: min(18rem, calc(100vw - 1.5rem));
-    }
-
-    .hidden-links a {
-      padding: 0.75rem 1rem;
-    }
   }
+}
+
+/* main.min.js toggles .open on the Follow button. */
+.author__urls-wrapper button.open + .author__urls {
+  display: block;
+  z-index: 30;
 }
