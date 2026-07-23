@@ -1,10 +1,10 @@
 # Academic Pages migration instructions
 
-This repository is migrating Peijun Li's existing personal website from an older customized Academic Pages / Minimal Mistakes version to Academic Pages v0.8.4.
+This repository is migrating Peijun Li's existing personal website from an older customized Academic Pages / Minimal Mistakes version to Academic Pages v0.9.
 
 ## Source of truth
 
-- The current working tree uses Academic Pages v0.8.4 as the template foundation.
+- The current working tree uses Academic Pages v0.9 as the template foundation.
 - `OLD_CONFIG_REFERENCE.yml` contains personal settings from the previous site.
 - The copied Markdown pages and collections contain the user's real academic content.
 - The production repository is `pjlicn/pjlicn.github.io`.
@@ -15,7 +15,7 @@ This repository is migrating Peijun Li's existing personal website from an older
 
 - Do not migrate the site to React, Vue, Next.js, Astro, Tailwind, Bootstrap, or another framework.
 - Do not restore old `_sass`, `_includes`, `_layouts`, `assets`, Gemfile, workflows, or custom theme-toggle files.
-- Preserve Academic Pages v0.8.4 layouts, includes, SCSS structure, JavaScript, Gemfile, and deployment infrastructure.
+- Preserve Academic Pages v0.9 layouts, includes, SCSS structure, JavaScript, Gemfile, and deployment infrastructure.
 - Do not copy `OLD_CONFIG_REFERENCE.yml` wholesale over `_config.yml`.
 - Use the new `_config.yml` structure and migrate only personal values.
 - Preserve real publications, pages, files, images, links, and permalinks.
@@ -26,7 +26,7 @@ This repository is migrating Peijun Li's existing personal website from an older
 
 ## Theme rules
 
-- Use the built-in Academic Pages v0.8.4 light/dark theme system.
+- Use the built-in Academic Pages v0.9 light/dark theme system.
 - Do not restore the old custom dark-mode implementation.
 - Do not create a second theme toggle.
 - Verify text, links, navigation, sidebar, footer, tables, code blocks, and buttons in both themes.
