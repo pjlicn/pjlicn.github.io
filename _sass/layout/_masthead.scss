@@ -1,6 +1,6 @@
-/* ==========================================================================
+/* ===========================================================================
    MASTHEAD
-   ========================================================================== */
+   =========================================================================== */
 
 .masthead {
   position: fixed;
@@ -63,5 +63,22 @@
   &--lg {
     padding-right: 2em;
     font-weight: 700;
+  }
+}
+
+/* Keep the fixed header compact and usable on phones.  The greedy-navigation
+   script moves overflowing links into its menu button, so the name and theme
+   control remain visible without horizontal scrolling. */
+@media screen and (max-width: 600px) {
+  .masthead__inner-wrap {
+    padding: 0.25em 0.75em;
+  }
+
+  .masthead__menu-item--lg {
+    padding-right: 0.5em;
+  }
+
+  .masthead__menu-item--lg a {
+    font-size: $type-size-6;
   }
 }

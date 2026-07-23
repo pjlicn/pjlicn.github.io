@@ -1,6 +1,6 @@
-/* ==========================================================================
+/* ===========================================================================
    NAVIGATION
-   ========================================================================== */
+   =========================================================================== */
 
 /*
    Breadcrumb navigation links
@@ -50,7 +50,6 @@
     font-weight: bold;
   }
 }
-
 
 /*
    Post pagination navigation links
@@ -163,10 +162,9 @@
 .page__share + .pagination,
 .page__comments + .pagination {
   margin-top: 2em;
-  padding-top: 2em;
+  padding-top: 1em;
   border-top: 1px solid var(--global-border-color);
 }
-
 
 /*
    Priority plus navigation
@@ -174,7 +172,7 @@
 
 .greedy-nav {
   position: relative;
-  min-width: 250px;
+  min-width: 0;
   background: var(--global-bg-color);
 
   a {
@@ -319,6 +317,24 @@
   }
 }
 
+@media screen and (max-width: 600px) {
+  .greedy-nav {
+    min-width: 0;
+  }
+
+  .greedy-nav .visible-links a {
+    margin: 0 0.45rem;
+  }
+
+  .greedy-nav .hidden-links {
+    right: -0.25rem;
+    width: min(18rem, calc(100vw - 1.5rem));
+  }
+
+  .greedy-nav .hidden-links a {
+    padding: 0.75rem 1rem;
+  }
+}
 
 /*
    Navigation list
@@ -374,7 +390,6 @@
   text-transform: uppercase;
   border-bottom: 1px solid var(--global-border-color);
 }
-
 
 /*
    Table of contents navigation
