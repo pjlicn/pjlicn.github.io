@@ -33,8 +33,9 @@ Conferences
 * **Li, P.**, Zha, Y., Tso, C. H. M., Shi, L., Yu, D., Zhang, Y., Zeng, W., Peng, J. (2023) Bias detection of ISMN soil moisture measurements through soil water balance model and data assimilation. EGU General Assembly 2023, Vienna, Austria.
 
 
-## Open-source Contributions
+## Open-source Projects & Resources
 
+- [Hydro Catalog](https://pjlicn.github.io/hydro-catalog/): A curated catalog of hydrological datasets, methods, tools, and research challenges.
 - [ReconstructedTWS](https://github.com/PercyLeeMaxWell/ReconstructedTWS): An AI model for reconstructing GRACE-derived terrestrial water storage anomalies using in-situ groundwater levels and meteorological forcing
 - [Soil Water Retention Models Dataset](https://doi.org/10.7910/DVN/L0XVBG): A family of soil water retention models based on S-shaped functions
 - [Cross-scale Parameter Transfer Dataset](https://doi.org/10.7910/DVN/8VJDPT): AI-integrated scale conversion and pedo-transfer function estimation

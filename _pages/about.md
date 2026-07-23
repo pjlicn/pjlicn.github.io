@@ -13,11 +13,12 @@ Hi, I'm Peijun Li
 **Data-driven Hydrological Analysis and Physics-informed Modeling**
 
 Previous Work:
-* Efficient parameter estimation and hybrid modeling
-* Differentiable parameter learning
-* Data and model bias identification and correction
-* Cross-scale, multi-source data integration and modeling
-* Coupled surface water–soil moisture–groundwater systems
+
+- Efficient parameter estimation and hybrid modeling
+- Differentiable parameter learning
+- Data and model bias identification and correction
+- Cross-scale, multi-source data integration and modeling
+- Coupled surface water–soil moisture–groundwater systems
 
 
 I earned my Ph.D. in Hydrological Sciences and am currently a Postdoctoral Scholar at [the Pennsylvania State University](https://www.psu.edu/), University Park, where I conduct research as part of the [MHPI](https://sites.google.com/view/mhpi/team) team.
@@ -37,8 +38,8 @@ Prospects
 
 Quick Look
 ======
- [Publicatioins](/publications/)  
- [Contacts](/contacts/)
+[Publications](/publications/)
+[Contacts](/contacts/)
 
 
 
