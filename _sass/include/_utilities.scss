@@ -19,6 +19,11 @@
   word-wrap: break-word;
 }
 
+/* Utility class used by responsive navigation and dynamically hidden content. */
+.hidden {
+  display: none !important;
+}
+
 /*
    Images
    ========================================================================== */
