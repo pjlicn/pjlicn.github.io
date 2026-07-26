@@ -1,152 +1,157 @@
 {
   "basics": {
-    "name": "Your Sidebar Name",
-    "email": "none@example.org",
-    "phone": "",
-    "website": "https://academicpages.github.io",
-    "summary": "Currently employed at Red Brick University. Short biography for the left-hand sidebar",
+    "name": "Peijun Li",
+    "label": "Postdoctoral Scholar in Hydrological Sciences",
+    "email": "peijunlicn@gmail.com",
+    "website": "https://pjlicn.github.io",
+    "summary": "Hydrology researcher working on data-driven analysis, data assimilation, and physics-informed modeling.",
     "location": {
-      "address": "",
-      "postalCode": "",
-      "city": "Earth",
-      "countryCode": "US",
-      "region": ""
+      "city": "State College",
+      "region": "PA",
+      "countryCode": "US"
     },
     "profiles": [
       {
         "network": "Google Scholar",
         "username": "",
-        "url": "https://scholar.google.com/citations?user=PS_CX0AAAAAJ"
+        "url": "https://scholar.google.com/citations?user=bIzYQukAAAAJ&hl=en"
       },
       {
         "network": "ORCID",
-        "username": "",
-        "url": "http://orcid.org/yourorcidurl"
+        "username": "0000-0002-5897-9093",
+        "url": "https://orcid.org/0000-0002-5897-9093"
       },
       {
         "network": "GitHub",
-        "username": "academicpages",
-        "url": "https://github.com/academicpages"
+        "username": "pjlicn",
+        "url": "https://github.com/pjlicn"
+      },
+      {
+        "network": "LinkedIn",
+        "username": "peijun-li-52a14a267",
+        "url": "https://www.linkedin.com/in/peijun-li-52a14a267"
       }
     ]
   },
-  "work": [],
+  "work": [
+    {
+      "position": "Postdoctoral Scholar",
+      "company": "Pennsylvania State University",
+      "startDate": "2024",
+      "endDate": "Present",
+      "summary": "Research with the MHPI team on hydrological modeling, remote sensing, and differentiable methods."
+    }
+  ],
   "education": [
     {
-      "institution": "GitHub University",
-      "area": "Ph.D in Version Control Theory",
-      "studyType": "",
-      "startDate": "",
+      "institution": "Wuhan University",
+      "area": "Ph.D. in Water Resources and Hydropower Engineering",
+      "studyType": "Ph.D.",
+      "startDate": "2018",
+      "endDate": "2023",
+      "courses": []
+    },
+    {
+      "institution": "Helmholtz Centre for Environmental Research (UFZ)",
+      "area": "Visiting Student",
+      "studyType": "Visiting research",
+      "startDate": "2022",
+      "endDate": "2023",
+      "courses": []
+    },
+    {
+      "institution": "China University of Geosciences",
+      "area": "B.S. in Hydrology and Water Resources Engineering",
+      "studyType": "B.S.",
+      "startDate": "2014",
       "endDate": "2018",
-      "gpa": null,
-      "courses": []
-    },
-    {
-      "institution": "GitHub University",
-      "area": "M.S. in Jekyll",
-      "studyType": "",
-      "startDate": "",
-      "endDate": "2014",
-      "gpa": null,
-      "courses": []
-    },
-    {
-      "institution": "GitHub University",
-      "area": "B.S. in GitHub",
-      "studyType": "",
-      "startDate": "",
-      "endDate": "2012",
-      "gpa": null,
       "courses": []
     }
   ],
-  "skills": [],
+  "skills": [
+    {
+      "name": "Hydrological modeling",
+      "keywords": ["HYDRUS", "MODFLOW", "HBV", "W3RA", "MPR", "RAPID"]
+    },
+    {
+      "name": "Statistical and analytical methods",
+      "keywords": ["STL decomposition", "PCA", "ICA", "ANN", "Random forest", "LSTM", "CNN"]
+    },
+    {
+      "name": "Geospatial computing",
+      "keywords": ["Google Earth Engine", "ArcGIS", "QGIS", "GDAL"]
+    },
+    {
+      "name": "Programming and machine learning",
+      "keywords": ["Python", "MATLAB", "Fortran", "R", "Linux shell", "PyTorch", "TensorFlow", "scikit-learn"]
+    }
+  ],
   "languages": [],
-  "interests": [],
+  "interests": [
+    {"name": "Multi-scale hydrological processes"},
+    {"name": "Data assimilation and multi-source data integration"},
+    {"name": "Data-driven and physically based hydrological models"}
+  ],
   "references": [],
   "publications": [
     {
-      "name": "Paper Title Number 1",
-      "publisher": "Journal 1",
-      "releaseDate": "2009-10-01",
-      "website": "http://academicpages.github.io/files/paper1.pdf",
-      "summary": "This paper is about the number 1. The number 2 is left for future work."
+      "name": "Ensembling differentiable process-based and data-driven models with diverse meteorological forcing datasets to advance streamflow simulation",
+      "publisher": "Hydrology and Earth System Sciences",
+      "releaseDate": "2025",
+      "website": "https://doi.org/10.5194/hess-29-6829-2025"
     },
     {
-      "name": "Paper Title Number 2",
-      "publisher": "Journal 1",
-      "releaseDate": "2010-10-01",
-      "website": "http://academicpages.github.io/files/paper2.pdf",
-      "summary": "This paper is about the number 2. The number 3 is left for future work."
+      "name": "Deep learning integrating scale conversion and pedo-transfer function to avoid potential errors in cross-scale transfer",
+      "publisher": "Water Resources Research",
+      "releaseDate": "2024",
+      "website": "https://doi.org/10.1029/2023WR035543"
     },
     {
-      "name": "Paper Title Number 3",
-      "publisher": "Journal 1",
-      "releaseDate": "2015-10-01",
-      "website": "http://academicpages.github.io/files/paper3.pdf",
-      "summary": "This paper is about the number 3. The number 4 is left for future work."
+      "name": "A family of soil water retention models based on sigmoid functions",
+      "publisher": "Water Resources Research",
+      "releaseDate": "2023",
+      "website": "https://doi.org/10.1029/2022WR033160"
     },
     {
-      "name": "Paper Title Number 4",
-      "publisher": "GitHub Journal of Bugs",
-      "releaseDate": "2024-02-17",
-      "website": "http://academicpages.github.io/files/paper3.pdf",
-      "summary": "This paper is about fixing template issue #693."
+      "name": "Reconstructing GRACE-derived terrestrial water storage anomalies with in-situ groundwater level measurements and meteorological forcing data",
+      "publisher": "Journal of Hydrology: Regional Studies",
+      "releaseDate": "2023",
+      "website": "https://doi.org/10.1016/j.ejrh.2023.101528"
+    },
+    {
+      "name": "Assessing the global relationships between teleconnection factors and terrestrial water storage components",
+      "publisher": "Water Resources Management",
+      "releaseDate": "2022",
+      "website": "https://doi.org/10.1007/s11269-021-03015-x"
+    },
+    {
+      "name": "Identification of the terrestrial water storage change features in the North China Plain via independent component analysis",
+      "publisher": "Journal of Hydrology: Regional Studies",
+      "releaseDate": "2021",
+      "website": "https://doi.org/10.1016/j.ejrh.2021.100955"
+    },
+    {
+      "name": "Comparison of the use of a physical-based model with data assimilation and machine learning methods for simulating soil water dynamics",
+      "publisher": "Journal of Hydrology",
+      "releaseDate": "2020",
+      "website": "https://doi.org/10.1016/j.jhydrol.2020.124692"
+    },
+    {
+      "name": "Data assimilation of uncalibrated soil moisture measurements from frequency-domain reflectometry",
+      "publisher": "Geoderma",
+      "releaseDate": "2020",
+      "website": "https://doi.org/10.1016/j.geoderma.2020.114432"
     }
   ],
   "presentations": [
     {
-      "name": "Talk 1 on Relevant Topic in Your Field",
-      "event": "UC San Francisco, Department of Testing",
-      "date": "2012-03-01",
-      "location": "San Francisco, CA, USA",
-      "description": ""
-    },
-    {
-      "name": "Tutorial 1 on Relevant Topic in Your Field",
-      "event": "UC-Berkeley Institute for Testing Science",
-      "date": "2013-03-01",
-      "location": "Berkeley, CA, USA",
-      "description": ""
-    },
-    {
-      "name": "Talk 2 on Relevant Topic in Your Field",
-      "event": "London School of Testing",
-      "date": "2014-02-01",
-      "location": "London, UK",
-      "description": ""
-    },
-    {
-      "name": "Conference Proceeding talk 3 on Relevant Topic in Your Field",
-      "event": "Testing Institute of America 2014 Annual Conference",
-      "date": "2014-03-01",
-      "location": "Los Angeles, CA, USA",
-      "description": ""
+      "name": "Bias detection of ISMN soil moisture measurements through soil water balance model and data assimilation",
+      "event": "EGU General Assembly",
+      "date": "2023",
+      "location": "Vienna, Austria",
+      "description": "Conference contribution."
     }
   ],
-  "teaching": [
-    {
-      "course": "Teaching experience 1",
-      "institution": "University 1, Department",
-      "date": "2014-01-01",
-      "role": "Undergraduate course",
-      "description": ""
-    },
-    {
-      "course": "Teaching experience 2",
-      "institution": "University 1, Department",
-      "date": "2015-01-01",
-      "role": "Workshop",
-      "description": ""
-    }
-  ],
-  "portfolio": [
-    {
-      "name": "Portfolio item number 1",
-      "category": "portfolio",
-      "date": "",
-      "url": "",
-      "description": "Short description of portfolio item number 1<br/><img src='/images/500x300.png'>"
-    }
-  ]
+  "teaching": [],
+  "portfolio": []
 }

@@ -1,6 +1,8 @@
 ---
 permalink: /contacts/
 title: ""
+seo_title: "Contact | Peijun Li"
+description: "Contact information for Peijun Li, a hydrology researcher at Pennsylvania State University."
 author_profile: true
 redirect_from: 
   - /contacts.html

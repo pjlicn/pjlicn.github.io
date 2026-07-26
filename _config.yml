@@ -137,14 +137,19 @@ facebook:
   username               :
   app_id                 :
   publisher              :
-og_image                 :  # Social media default site image
-og_description           :  # Social media default site image description
+og_image                 : "profile.png" # default image for social previews
+og_description           : "Research website of Peijun Li, focused on data-driven hydrological analysis and physics-informed modeling."
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
 social:
-  type                   : # Person or Organization (defaults to Person)
-  name                   : # If the user or organization name differs from the site's name
-  links: # An array of links to social media profiles
+  type                   : "Person"
+  name                   : "Peijun Li"
+  links:
+    - "https://pjlicn.github.io/"
+    - "https://scholar.google.com/citations?user=bIzYQukAAAAJ&hl=en"
+    - "https://orcid.org/0000-0002-5897-9093"
+    - "https://github.com/pjlicn"
+    - "https://www.linkedin.com/in/peijun-li-52a14a267"
 
 
 # Analytics

@@ -1,6 +1,8 @@
 ---
 layout: archive
 title: ""
+seo_title: "Resume | Peijun Li"
+description: "Academic training, research experience, awards, and technical skills of Peijun Li."
 permalink: /cv/
 author_profile: true
 redirect_from:
@@ -20,9 +22,9 @@ Education
 
 Work experience
 ======
-* 2024-present: Post-doctoral Scholar  
+* 2024–present: Postdoctoral Scholar
 [MHPI](https://sites.google.com/view/mhpi/team) Lab, Department of Civil and Environmental Engineering  
-Penn State Univeristy, State College, PA
+Penn State University, State College, PA
 
 * Member of Youth Editorial Board of *Journal of Groundwater Science and Engineering*
 

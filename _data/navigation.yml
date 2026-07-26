@@ -2,6 +2,9 @@
 main:
   - title: "Home"
     url: /
+
+  - title: "Research"
+    url: /research/
   
   - title: "Resume"
     url: /cv/
@@ -10,7 +13,7 @@ main:
     url: /publications/
     
   - title: "Projects"
-    url: /year-archive/
+    url: /projects/
 
 #  - title: "Talks"
 #    url: /talks/    

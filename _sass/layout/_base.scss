@@ -26,6 +26,21 @@ body {
   }
 }
 
+.skip-link {
+  position: absolute;
+  top: 1rem;
+  left: -9999px;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+  color: var(--global-bg-color);
+  background: var(--global-text-color);
+  text-decoration: none;
+
+  &:focus {
+    left: 1rem;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin: 2em 0 0.5em;
   line-height: 1.2;

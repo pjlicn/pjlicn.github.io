@@ -1,7 +1,9 @@
 ---
 permalink: /
 title: ""
-excerpt: "About me"
+seo_title: "Peijun Li | Hydrological Modeling and Data Assimilation"
+description: "Research profile of Peijun Li, a Penn State postdoctoral scholar working on data-driven hydrology, data assimilation, and physics-informed modeling."
+excerpt: "Research profile of Peijun Li, focused on data-driven hydrological analysis and physics-informed modeling."
 author_profile: true
 redirect_from: 
   - /about/
@@ -63,4 +65,3 @@ Hydrology and Earth System Sciences, 1.
 Water Resources Research, 3.
 Communications Earth & Environment, 1. 
 Journal of Hydrologic Engineering, 1.-->
-

@@ -30,19 +30,24 @@ function setTheme(theme) {
   const use_theme = theme ||
     localStorage.getItem("theme") ||
     $("html").attr("data-theme") ||
-    browserPref;
+    (browserPref ? "dark" : "light");
 
   if (use_theme === "dark") {
     $("html").attr("data-theme", "dark");
     $("#theme-icon").removeClass("fa-sun").addClass("fa-moon");
+    $("#theme-toggle a").attr("aria-pressed", "true");
   } else if (use_theme === "light") {
     $("html").removeAttr("data-theme");
     $("#theme-icon").removeClass("fa-moon").addClass("fa-sun");
+    $("#theme-toggle a").attr("aria-pressed", "false");
   }
 }
 
 // Toggle the theme manually
-function toggleTheme() {
+function toggleTheme(event) {
+  if (event) {
+    event.preventDefault();
+  }
   const current_theme = $("html").attr("data-theme");
   const new_theme = current_theme === "dark" ? "light" : "dark";
   localStorage.setItem("theme", new_theme);

@@ -145,6 +145,11 @@
     color: var(--global-text-color);
     cursor: pointer;
     z-index: 100;
+
+    &:focus-visible {
+      outline: 3px solid var(--global-link-color);
+      outline-offset: 2px;
+    }
   }
 
   .visible-links {

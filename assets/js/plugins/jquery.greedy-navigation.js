@@ -82,9 +82,11 @@ function updateNav() {
 $(window).on('resize', function () {
   updateNav();
 });
-screen.orientation.addEventListener("change", function () {
-  updateNav();
-});
+if (screen.orientation) {
+  screen.orientation.addEventListener("change", function () {
+    updateNav();
+  });
+}
 
 $btn.on('click', function () {
   setMenuState($hlinks.hasClass('hidden'));
