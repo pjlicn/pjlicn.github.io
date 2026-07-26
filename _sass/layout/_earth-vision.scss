@@ -1,0 +1,568 @@
+/* ==========================================================================
+   FUTURE EARTH OBSERVATION VISION
+   ========================================================================== */
+
+.earth-vision-shell {
+  max-width: $x-large;
+}
+
+.earth-vision-page {
+  width: 100%;
+}
+
+.earth-vision-page__header {
+  max-width: 58rem;
+  margin-bottom: 1.5rem;
+}
+
+.earth-vision-page__eyebrow,
+.earth-observatory__kicker,
+.earth-observatory__info-type {
+  margin-bottom: 0.4rem;
+  color: var(--global-text-color-light);
+  font-size: $type-size-7;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.earth-vision-page__title {
+  margin-bottom: 0.65rem;
+}
+
+.earth-vision-page__lead,
+.earth-vision-page__summary {
+  max-width: 58rem;
+  color: var(--global-text-color-light);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.earth-vision-page__summary {
+  color: var(--global-text-color);
+}
+
+.earth-observatory {
+  margin-top: 1.75rem;
+  overflow: hidden;
+  border: 1px solid var(--global-border-color);
+  border-radius: 0.75rem;
+  background: var(--global-bg-color);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+.earth-observatory [hidden] {
+  display: none !important;
+}
+
+.earth-observatory .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.earth-observatory__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.25rem 1.4rem 1rem;
+  border-bottom: 1px solid var(--global-border-color);
+
+  h2 {
+    margin: 0;
+    font-size: $type-size-4;
+  }
+}
+
+.earth-observatory__disclaimer {
+  max-width: 24rem;
+  margin: 0;
+  color: var(--global-text-color-light);
+  font-size: $type-size-7;
+  line-height: 1.5;
+}
+
+.earth-observatory__toolbar {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(24rem, 1.5fr);
+  gap: 1.25rem;
+  padding: 0.9rem 1.4rem 1rem;
+  border-bottom: 1px solid var(--global-border-color);
+}
+
+.earth-observatory__control-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 0.5rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+  }
+}
+
+.earth-observatory__segmented {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0.2rem;
+  border: 1px solid var(--global-border-color);
+  border-radius: 0.45rem;
+  background: var(--global-bg-color);
+
+  button {
+    min-height: 2.25rem;
+    padding: 0.35rem 0.8rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+    border: 0;
+    border-radius: 0.3rem;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--global-link-color-hover);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--global-link-color);
+      outline-offset: 2px;
+    }
+
+    &.is-active {
+      color: #fff;
+      background: var(--global-link-color);
+    }
+  }
+}
+
+.earth-observatory__layer-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    margin: 0;
+    padding: 0.3rem 0.65rem;
+    color: var(--global-text-color);
+    font-size: $type-size-7;
+    line-height: 1.2;
+    border: 1px solid var(--global-border-color);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0 0.35rem 0 0;
+    accent-color: var(--global-link-color);
+  }
+
+  label:has(input:checked) {
+    border-color: var(--global-link-color);
+    background: rgba(82, 173, 200, 0.1);
+  }
+}
+
+.earth-observatory__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+  min-height: 34rem;
+}
+
+.earth-observatory__stage {
+  position: relative;
+  min-width: 0;
+  min-height: 34rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(31, 138, 183, 0.18), transparent 38%),
+    linear-gradient(145deg, #061521, #02070d 72%);
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 34rem;
+    outline: none;
+    touch-action: none;
+
+    &:focus-visible {
+      box-shadow: inset 0 0 0 3px #62d7ff;
+    }
+  }
+}
+
+.earth-observatory__fallback {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.8fr) minmax(16rem, 1fr);
+  align-items: center;
+  gap: 2rem;
+  min-height: 34rem;
+  padding: 2rem;
+  color: #e6f7ff;
+
+  h3 {
+    margin-top: 0;
+    color: #fff;
+  }
+
+  p,
+  li {
+    font-size: $type-size-6;
+  }
+}
+
+.earth-observatory__fallback-note {
+  color: #9cc7d8;
+}
+
+.earth-observatory__fallback-globe {
+  position: relative;
+  width: min(16rem, 70vw);
+  aspect-ratio: 1;
+  margin: auto;
+  border: 1px solid rgba(116, 218, 255, 0.72);
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(ellipse at center, transparent 0 16%, rgba(119, 218, 255, 0.13) 17% 18%),
+    repeating-linear-gradient(90deg, transparent 0 19%, rgba(119, 218, 255, 0.12) 20% 21%),
+    radial-gradient(circle at 35% 30%, #1c7696, #073a5a 58%, #031827);
+  box-shadow:
+    0 0 0 0.8rem rgba(66, 191, 232, 0.05),
+    0 0 3rem rgba(66, 191, 232, 0.28);
+}
+
+.earth-observatory__fallback-orbit {
+  position: absolute;
+  inset: -14%;
+  border: 1px solid rgba(245, 204, 100, 0.7);
+  border-radius: 50%;
+  transform: rotate(-20deg) scaleY(0.48);
+}
+
+.earth-observatory__fallback-satellite,
+.earth-observatory__fallback-station,
+.earth-observatory__fallback-uav {
+  position: absolute;
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0.8rem currentColor;
+}
+
+.earth-observatory__fallback-satellite {
+  top: 5%;
+  right: 9%;
+  color: #ffd166;
+  background: currentColor;
+}
+
+.earth-observatory__fallback-station {
+  right: 23%;
+  bottom: 18%;
+  color: #72efdd;
+  background: currentColor;
+}
+
+.earth-observatory__fallback-uav {
+  top: 44%;
+  left: -4%;
+  color: #ff7aa2;
+  background: currentColor;
+}
+
+.earth-observatory__legend {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.45rem 0.65rem;
+  color: #d8f5ff;
+  font-size: 0.68rem;
+  border: 1px solid rgba(148, 215, 239, 0.2);
+  border-radius: 0.4rem;
+  background: rgba(2, 10, 18, 0.76);
+  backdrop-filter: blur(8px);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  i {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.3rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0.45rem currentColor;
+  }
+
+  .legend-satellite { color: #ffd166; }
+  .legend-ground { color: #72efdd; }
+  .legend-uav { color: #ff7aa2; }
+  .legend-flow { color: #74c0fc; }
+}
+
+.earth-observatory__info {
+  padding: 1.25rem 1.35rem;
+  border-left: 1px solid var(--global-border-color);
+  background: var(--global-bg-color);
+
+  h3 {
+    margin: 0 0 0.7rem;
+    font-size: $type-size-5;
+  }
+
+  > p:not(.earth-observatory__info-type) {
+    margin-bottom: 1.25rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-6;
+    line-height: 1.55;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dl div {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--global-border-color);
+  }
+
+  dt {
+    margin: 0 0 0.2rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    font-size: $type-size-6;
+    line-height: 1.45;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--global-link-color);
+    outline-offset: -3px;
+  }
+}
+
+.earth-observatory__timeline {
+  display: grid;
+  grid-template-columns: auto auto minmax(8rem, 1fr) 3.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.4rem;
+  border-top: 1px solid var(--global-border-color);
+
+  label,
+  output {
+    font-size: $type-size-7;
+    font-weight: 700;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    margin: 0;
+    accent-color: var(--global-link-color);
+  }
+}
+
+.earth-observatory__play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.75rem;
+  color: #fff;
+  font-size: $type-size-7;
+  font-weight: 700;
+  border: 1px solid var(--global-link-color);
+  border-radius: 0.35rem;
+  background: var(--global-link-color);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--global-link-color-hover);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--global-link-color);
+    outline-offset: 2px;
+  }
+}
+
+.earth-observatory__instructions {
+  margin: 0;
+  padding: 0 1.4rem 1rem;
+  color: var(--global-text-color-light);
+  font-size: $type-size-7;
+  line-height: 1.5;
+}
+
+.earth-vision-process {
+  max-width: 64rem;
+  margin-top: 2.5rem;
+
+  h2 {
+    padding-bottom: 0.45em;
+    border-bottom: 1px solid var(--global-border-color);
+  }
+
+  ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: vision-step;
+  }
+
+  li {
+    position: relative;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--global-border-color);
+    border-radius: $border-radius;
+    counter-increment: vision-step;
+  }
+
+  li:before {
+    content: "0" counter(vision-step);
+    display: block;
+    margin-bottom: 0.55rem;
+    color: var(--global-link-color);
+    font-size: $type-size-7;
+    font-weight: 800;
+  }
+
+  strong,
+  span {
+    display: block;
+  }
+
+  span {
+    margin-top: 0.35rem;
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    line-height: 1.5;
+  }
+}
+
+@media screen and (max-width: 980px) {
+  .earth-observatory__heading {
+    display: block;
+  }
+
+  .earth-observatory__disclaimer {
+    max-width: none;
+    margin-top: 0.75rem;
+  }
+
+  .earth-observatory__toolbar,
+  .earth-observatory__workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .earth-observatory__info {
+    border-top: 1px solid var(--global-border-color);
+    border-left: 0;
+  }
+}
+
+@media screen and (max-width: 680px) {
+  .earth-vision-shell {
+    margin-top: 1.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .earth-observatory__heading,
+  .earth-observatory__toolbar,
+  .earth-observatory__info,
+  .earth-observatory__timeline {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .earth-observatory__toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .earth-observatory__segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .earth-observatory__workspace,
+  .earth-observatory__stage,
+  .earth-observatory__stage canvas {
+    min-height: 25rem;
+  }
+
+  .earth-observatory__fallback {
+    grid-template-columns: 1fr;
+    min-height: 25rem;
+    padding: 1.25rem;
+  }
+
+  .earth-observatory__fallback-globe {
+    width: min(12rem, 55vw);
+  }
+
+  .earth-observatory__timeline {
+    grid-template-columns: auto 1fr 3.5rem;
+  }
+
+  .earth-observatory__timeline label {
+    grid-column: 1 / -1;
+  }
+
+  .earth-vision-process ol {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .earth-observatory__layer-options label {
+    width: 100%;
+  }
+
+  .earth-vision-process ol {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .earth-observatory *,
+  .earth-vision-process * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

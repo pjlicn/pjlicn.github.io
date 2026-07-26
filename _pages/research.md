@@ -33,3 +33,7 @@ My work uses hydrological modeling, statistical decomposition, data assimilation
 ## Current directions
 
 Current directions include multi-scale hydrological simulation, integration of multi-source observations, synergistic data-driven and physically based models, and models that represent human influence on hydrological processes.
+
+## Interactive Earth observation vision
+
+The [Future Earth Observation Vision](/earth-vision/) is a conceptual interactive model showing how satellite, ground, UAV, and low-altitude observations could be integrated across space and time. It uses simulated trajectories and data flows to communicate a future research direction rather than an operational monitoring system.

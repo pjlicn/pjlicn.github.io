@@ -21,6 +21,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
+      - name: Check page JavaScript syntax
+        run: node --check assets/js/earth-vision.js
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:

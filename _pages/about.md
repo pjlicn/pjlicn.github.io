@@ -42,6 +42,7 @@ Quick Look
 ======
 <nav class="quick-look" aria-label="Quick links">
   <a class="quick-look__link" href="/research/">Research</a>
+  <a class="quick-look__link" href="/earth-vision/">Earth Vision</a>
   <a class="quick-look__link" href="/publications/">Publications</a>
   <a class="quick-look__link" href="/projects/">Projects</a>
   <a class="quick-look__link" href="/contacts/">Contacts</a>

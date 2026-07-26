@@ -9,7 +9,7 @@ author_profile: true
 ## Open-source projects and resources
 
 - [Hydro Catalog](https://pjlicn.github.io/hydro-catalog/): A curated catalog of hydrological datasets, methods, tools, and research challenges.
-- [ReconstructedTWS](https://github.com/PercyLeeMaxWell/ReconstructedTWS): An AI model for reconstructing GRACE-derived terrestrial water-storage anomalies using groundwater observations and meteorological forcing.
+- [ReconstructedTWS](https://percyleemaxwell.github.io/ReconstructedTWS/): An AI model for reconstructing GRACE-derived terrestrial water-storage anomalies using groundwater observations and meteorological forcing.
 - [Soil Water Retention Models Dataset](https://doi.org/10.7910/DVN/L0XVBG): Data supporting a family of soil-water-retention models based on sigmoid functions.
 - [Cross-scale Parameter Transfer Dataset](https://doi.org/10.7910/DVN/8VJDPT): Data supporting scale conversion and pedo-transfer-function estimation.
 - [Streamflow Simulations with Differentiable HBV and LSTM Models](https://zenodo.org/records/16895228): Streamflow simulation data using CAMELS datasets.
