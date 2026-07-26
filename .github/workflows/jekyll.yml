@@ -35,10 +35,12 @@ jobs:
         with:
           args: >-
             --root-dir ${{ github.workspace }}/_site
+            --offline
             --no-progress
             --fallback-extensions html
             --exclude-path '(_site/portfolio|_site/gallery)'
-            --exclude '(researchgate\.net|linkedin\.com|doi\.org)'
+            --exclude '^https?://'
+            --exclude '^mailto:'
             "_site/**/*.html"
           fail: true
         env:
