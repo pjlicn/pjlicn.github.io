@@ -55,6 +55,18 @@
   display: none !important;
 }
 
+.earth-observatory.is-static {
+  .earth-observatory__toolbar,
+  .earth-observatory__info,
+  .earth-observatory__timeline {
+    display: none;
+  }
+
+  .earth-observatory__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .earth-observatory .visually-hidden {
   position: absolute !important;
   width: 1px !important;
@@ -321,6 +333,7 @@
   .legend-ground { color: #72efdd; }
   .legend-uav { color: #ff7aa2; }
   .legend-flow { color: #74c0fc; }
+  .legend-water { color: #7ad7f0; }
 }
 
 .earth-observatory__info {
@@ -369,9 +382,169 @@
   }
 }
 
+.earth-observatory__water-panel {
+  margin-top: 1.2rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--global-border-color);
+}
+
+.earth-observatory__water-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  h3 {
+    margin: 0;
+  }
+
+  output {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.45rem;
+    color: var(--global-text-color);
+    font-size: $type-size-7;
+    font-weight: 700;
+    border: 1px solid var(--global-border-color);
+    border-radius: 0.3rem;
+  }
+}
+
+.earth-observatory__water-controls {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+
+  label {
+    margin: 0;
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+  }
+
+  select {
+    display: block;
+    width: 100%;
+    min-height: 2.35rem;
+    margin-top: 0.3rem;
+    padding: 0.35rem 2rem 0.35rem 0.55rem;
+    color: var(--global-text-color);
+    font-size: $type-size-7;
+    border: 1px solid var(--global-border-color);
+    border-radius: 0.35rem;
+    background-color: var(--global-bg-color);
+
+    &:focus-visible {
+      outline: 3px solid var(--global-link-color);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.earth-observatory__water-reading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.15rem 0.75rem;
+  margin-top: 0.9rem;
+
+  span {
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+  }
+
+  output {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    color: var(--global-text-color);
+    font-size: 1.45rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  strong {
+    font-size: $type-size-7;
+  }
+
+  .is-dry { color: #c66d1e; }
+  .is-normal { color: #268ca8; }
+  .is-wet { color: #277da1; }
+}
+
+.earth-observatory__water-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.7rem;
+  overflow: visible;
+
+  text {
+    fill: var(--global-text-color-light);
+    font-size: 8px;
+  }
+}
+
+.water-chart__zero {
+  stroke: var(--global-border-color);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.water-chart__line {
+  fill: none;
+  stroke: var(--global-link-color);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.water-chart__marker {
+  stroke: var(--global-text-color-light);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.water-chart__point {
+  fill: var(--global-link-color);
+  stroke: var(--global-bg-color);
+  stroke-width: 2;
+}
+
+.earth-observatory__water-scale {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  font-size: 0.64rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  i {
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.25rem;
+    border-radius: 50%;
+  }
+
+  .water-scale__dry { background: #f2a65a; }
+  .water-scale__normal { background: #7ad7f0; }
+  .water-scale__wet { background: #277da1; }
+}
+
+.earth-observatory__water-note {
+  margin: 0.8rem 0 0 !important;
+  color: var(--global-text-color-light);
+  font-size: 0.65rem !important;
+  line-height: 1.45 !important;
+}
+
 .earth-observatory__timeline {
   display: grid;
-  grid-template-columns: auto auto minmax(8rem, 1fr) 3.5rem;
+  grid-template-columns: auto auto minmax(8rem, 1fr) 8.5rem;
   align-items: center;
   gap: 0.75rem;
   padding: 0.9rem 1.4rem;
@@ -381,6 +554,11 @@
   output {
     font-size: $type-size-7;
     font-weight: 700;
+  }
+
+  output {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   input[type="range"] {
@@ -535,7 +713,7 @@
   }
 
   .earth-observatory__timeline {
-    grid-template-columns: auto 1fr 3.5rem;
+    grid-template-columns: auto minmax(0, 1fr) 8.2rem;
   }
 
   .earth-observatory__timeline label {

@@ -18,7 +18,8 @@ author_profile: false
       <h2 id="earth-observatory-title">Observe, integrate, and model the Earth system</h2>
     </div>
     <p class="earth-observatory__disclaimer">
-      Concept visualization only. Positions, trajectories, observation windows, and data flows are simulated and not to scale.
+      Concept visualization only. Water states, positions, trajectories, observation windows,
+      and data flows are synthetic, simulated, and not to scale.
     </p>
   </div>
 
@@ -35,6 +36,7 @@ author_profile: false
     <fieldset class="earth-observatory__control-group earth-observatory__layers">
       <legend>Observation layers</legend>
       <div class="earth-observatory__layer-options">
+        <label><input type="checkbox" data-layer="waterStates" data-label="Water states" checked> Water states</label>
         <label><input type="checkbox" data-layer="satellites" data-label="Satellites" checked> Satellites</label>
         <label><input type="checkbox" data-layer="ground" data-label="Ground stations" checked> Ground stations</label>
         <label><input type="checkbox" data-layer="uav" data-label="UAV" checked> UAV</label>
@@ -71,6 +73,7 @@ author_profile: false
             <li>Satellite: surface water, soil moisture, and terrestrial water storage</li>
             <li>Ground: groundwater, soil moisture, and river monitoring networks</li>
             <li>Low altitude: near-surface, UAV survey, and regional sensing layers</li>
+            <li>Water states: synthetic annual wet and dry cycles across four concept regions</li>
           </ul>
           <p class="earth-observatory__fallback-note">
             The interactive WebGL view will replace this diagram when supported.
@@ -79,6 +82,7 @@ author_profile: false
       </div>
 
       <div class="earth-observatory__legend" aria-label="Visualization legend">
+        <span><i class="legend-water"></i> Water state</span>
         <span><i class="legend-satellite"></i> Satellite</span>
         <span><i class="legend-ground"></i> Ground</span>
         <span><i class="legend-uav"></i> UAV</span>
@@ -86,7 +90,7 @@ author_profile: false
       </div>
     </div>
 
-    <aside class="earth-observatory__info" data-object-info aria-live="polite" tabindex="0">
+    <aside class="earth-observatory__info" data-object-info tabindex="0">
       <p class="earth-observatory__info-type" data-info="type">System view</p>
       <h3 data-info="name">Integrated Earth observation</h3>
       <p data-info="description">
@@ -110,6 +114,71 @@ author_profile: false
           <dd data-info="role">Observation integration and state estimation</dd>
         </div>
       </dl>
+
+      <section class="earth-observatory__water-panel" aria-labelledby="water-state-title">
+        <div class="earth-observatory__water-heading">
+          <div>
+            <p class="earth-observatory__info-type">Synthetic annual cycle</p>
+            <h3 id="water-state-title">Simulated water state</h3>
+          </div>
+          <output data-water-date>Apr 1</output>
+        </div>
+
+        <div class="earth-observatory__water-controls">
+          <label for="earth-water-region">
+            Concept region
+            <select id="earth-water-region" data-water-region>
+              <option value="north-china-plain">North China Plain Concept</option>
+              <option value="temperate-agriculture">Temperate Agricultural Basin</option>
+              <option value="tropical-river">Tropical River Basin</option>
+              <option value="managed-reservoir">Managed Reservoir Basin</option>
+            </select>
+          </label>
+          <label for="earth-water-variable">
+            Water variable
+            <select id="earth-water-variable" data-water-variable>
+              <option value="totalWaterStorage">Total Water Storage</option>
+              <option value="surfaceWater">Surface Water</option>
+              <option value="soilMoisture">Soil Moisture</option>
+              <option value="groundwater">Groundwater</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="earth-observatory__water-reading">
+          <span>Relative water-state index</span>
+          <output data-water-value>+0.00</output>
+          <strong data-water-condition>Near normal</strong>
+        </div>
+
+        <svg
+          class="earth-observatory__water-chart"
+          data-water-chart
+          viewBox="0 0 320 122"
+          role="img"
+          aria-label="Synthetic annual total water storage cycle for North China Plain Concept"
+        >
+          <line class="water-chart__zero" x1="8" y1="56" x2="312" y2="56"></line>
+          <path class="water-chart__line" data-water-chart-line d=""></path>
+          <line class="water-chart__marker" data-water-chart-marker x1="84" y1="8" x2="84" y2="104"></line>
+          <circle class="water-chart__point" data-water-chart-point cx="84" cy="56" r="4"></circle>
+          <text x="8" y="118">Jan</text>
+          <text x="85" y="118">Apr</text>
+          <text x="161" y="118">Jul</text>
+          <text x="237" y="118">Oct</text>
+          <text x="298" y="118">Dec</text>
+        </svg>
+
+        <div class="earth-observatory__water-scale" aria-label="Relative water-state color scale">
+          <span><i class="water-scale__dry"></i> Drier</span>
+          <span><i class="water-scale__normal"></i> Near normal</span>
+          <span><i class="water-scale__wet"></i> Wetter</span>
+        </div>
+        <p class="earth-observatory__water-note">
+          Values are deterministic normalized indices from −1 to +1. They are not measurements,
+          forecasts, or reconstructions for the named regions.
+        </p>
+      </section>
     </aside>
   </div>
 
@@ -117,22 +186,22 @@ author_profile: false
     <button type="button" class="earth-observatory__play" data-play aria-pressed="false">
       <span data-play-label>Play</span>
     </button>
-    <label for="earth-vision-time">Simulated UTC</label>
+    <label for="earth-vision-time">Simulated annual cycle</label>
     <input
       id="earth-vision-time"
       data-time
       type="range"
       min="0"
-      max="1440"
-      step="15"
-      value="360"
+      max="364"
+      step="1"
+      value="90"
     >
-    <output for="earth-vision-time" data-time-output>06:00</output>
+    <output for="earth-vision-time" data-time-output>Apr 1 · Day 91</output>
   </div>
 
   <p id="earth-vision-instructions" class="earth-observatory__instructions">
     Drag to rotate, use the wheel or pinch gesture to zoom, select an object for details,
-    or use the controls to change scale, layers, and simulated time.
+    or use the controls to change scale, layers, water variable, concept region, and simulated date.
   </p>
   <p id="earth-vision-status" class="visually-hidden" data-earth-status aria-live="polite">
     Static concept view shown.

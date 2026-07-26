@@ -1,6 +1,90 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+const WATER_VARIABLE_LABELS = {
+  totalWaterStorage: "Total Water Storage",
+  surfaceWater: "Surface Water",
+  soilMoisture: "Soil Moisture",
+  groundwater: "Groundwater",
+};
+
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const WATER_DRY_COLOR = new THREE.Color(0xf2a65a);
+const WATER_NORMAL_COLOR = new THREE.Color(0x7ad7f0);
+const WATER_WET_COLOR = new THREE.Color(0x277da1);
+
+const WATER_REGION_CONFIGS = [
+  {
+    id: "north-china-plain",
+    name: "North China Plain Concept",
+    latitude: 36,
+    longitude: 116,
+    wetPeak: 226,
+    eventDay: 205,
+    eventWidth: 18,
+    eventStrength: 0.34,
+    surfaceAmplitude: 0.48,
+    soilAmplitude: 0.55,
+    groundwaterAmplitude: 0.38,
+    groundwaterLag: 52,
+    trend: -0.28,
+    management: -0.12,
+    process: "Seasonal recharge, delayed groundwater response, and a conceptual pumping pressure.",
+  },
+  {
+    id: "temperate-agriculture",
+    name: "Temperate Agricultural Basin",
+    latitude: 41,
+    longitude: -98,
+    wetPeak: 145,
+    eventDay: 164,
+    eventWidth: 15,
+    eventStrength: 0.3,
+    surfaceAmplitude: 0.42,
+    soilAmplitude: 0.72,
+    groundwaterAmplitude: 0.32,
+    groundwaterLag: 64,
+    trend: -0.08,
+    management: -0.06,
+    process: "Strong growing-season soil-moisture variability with slower aquifer response.",
+  },
+  {
+    id: "tropical-river",
+    name: "Tropical River Basin",
+    latitude: -3,
+    longitude: -60,
+    wetPeak: 92,
+    eventDay: 76,
+    eventWidth: 25,
+    eventStrength: 0.46,
+    surfaceAmplitude: 0.76,
+    soilAmplitude: 0.46,
+    groundwaterAmplitude: 0.28,
+    groundwaterLag: 42,
+    trend: 0.04,
+    management: 0,
+    process: "A broad wet-season river pulse with persistent soil and groundwater storage.",
+  },
+  {
+    id: "managed-reservoir",
+    name: "Managed Reservoir Basin",
+    latitude: 29,
+    longitude: -101,
+    wetPeak: 118,
+    eventDay: 132,
+    eventWidth: 13,
+    eventStrength: 0.28,
+    surfaceAmplitude: 0.54,
+    soilAmplitude: 0.36,
+    groundwaterAmplitude: 0.24,
+    groundwaterLag: 70,
+    trend: -0.04,
+    management: 0.24,
+    process: "Seasonal inflow modified by a synthetic reservoir storage and release cycle.",
+  },
+];
+
 const root = document.querySelector("[data-earth-vision]");
 
 if (root) {
@@ -17,6 +101,8 @@ async function initializeEarthVision(container) {
   const timeline = container.querySelector("[data-time]");
   const timeOutput = container.querySelector("[data-time-output]");
   const playButton = container.querySelector("[data-play]");
+  const waterRegionSelect = container.querySelector("[data-water-region]");
+  const waterVariableSelect = container.querySelector("[data-water-variable]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (!canvas || !supportsWebGL2()) {
@@ -43,7 +129,7 @@ async function initializeEarthVision(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.055;
   controls.enablePan = false;
-  controls.minDistance = 4.3;
+  controls.minDistance = 1.8;
   controls.maxDistance = 15;
   controls.autoRotate = !reducedMotion;
   controls.autoRotateSpeed = 0.32;
@@ -65,6 +151,7 @@ async function initializeEarthVision(container) {
   world.add(createStarField(window.innerWidth < 680 ? 260 : 520));
 
   const groups = {
+    waterStates: new THREE.Group(),
     satellites: new THREE.Group(),
     ground: new THREE.Group(),
     uav: new THREE.Group(),
@@ -74,16 +161,22 @@ async function initializeEarthVision(container) {
   Object.values(groups).forEach((group) => world.add(group));
 
   const interactables = [];
+  validateWaterModel(WATER_REGION_CONFIGS);
+  const waterRegions = createWaterRegions(groups.waterStates, interactables);
   const satellites = createSatellites(groups.satellites, interactables);
   const stations = createGroundStations(groups.ground, interactables);
   const uavs = createUavs(groups.uav, interactables);
   createLowAltitudeLayers(groups.lowAltitude);
   const flows = createDataFlows(groups.dataFlows, stations);
 
-  let simulatedMinutes = Number(timeline?.value || 600);
+  let simulationDay = Number(timeline?.value || 90);
+  let observationPhase = simulationDay / 365;
   let isPlaying = !reducedMotion;
   let lastFrame = performance.now();
   let selectedObject = null;
+  let selectedWaterRegion = waterRegions[0];
+  let selectedWaterVariable = waterVariableSelect?.value || "totalWaterStorage";
+  let currentScale = "global";
   let cameraTween = null;
   let pointerStart = null;
   let disposed = false;
@@ -92,8 +185,10 @@ async function initializeEarthVision(container) {
   fallback.hidden = true;
   setStatus(status, reducedMotion
     ? "Interactive scene ready. Automatic motion is paused to respect your reduced-motion preference."
-    : "Interactive scene ready. Drag to rotate, scroll or pinch to zoom, and select an observation platform.");
-  updateTimeDisplay(simulatedMinutes, timeline, timeOutput);
+    : "Interactive scene ready. Drag to rotate, scroll or pinch to zoom, and select an observation platform or water region.");
+  setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+  updateTimeDisplay(simulationDay, timeline, timeOutput);
+  updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
   updatePlayButton(playButton, isPlaying);
 
   const resize = () => {
@@ -122,21 +217,10 @@ async function initializeEarthVision(container) {
         item.setAttribute("aria-pressed", String(item === button));
         item.classList.toggle("is-active", item === button);
       });
-      const presets = {
-        global: { position: new THREE.Vector3(6.8, 3.5, 7.4), target: new THREE.Vector3(0, 0, 0) },
-        regional: { position: new THREE.Vector3(4.2, 2.7, 4.5), target: new THREE.Vector3(0.25, 0.15, 0.1) },
-        local: { position: new THREE.Vector3(3.25, 1.7, 2.65), target: stations[0].position.clone().multiplyScalar(0.72) },
-      };
-      const preset = presets[button.dataset.scale];
+      currentScale = button.dataset.scale;
+      const preset = getCameraPreset(currentScale, selectedWaterRegion);
       if (preset) {
-        cameraTween = {
-          fromPosition: camera.position.clone(),
-          toPosition: preset.position,
-          fromTarget: controls.target.clone(),
-          toTarget: preset.target,
-          start: performance.now(),
-          duration: reducedMotion ? 1 : 700,
-        };
+        cameraTween = createCameraTween(camera, controls, preset, reducedMotion);
         setStatus(status, `${button.textContent.trim()} scale selected.`);
       }
     });
@@ -145,14 +229,44 @@ async function initializeEarthVision(container) {
   playButton?.addEventListener("click", () => {
     isPlaying = !isPlaying;
     updatePlayButton(playButton, isPlaying);
-    setStatus(status, `Simulation ${isPlaying ? "playing" : "paused"} at ${formatTime(simulatedMinutes)}.`);
+    setStatus(status, `Simulation ${isPlaying ? "playing" : "paused"} at ${formatSimulationDate(simulationDay)}.`);
   });
 
   timeline?.addEventListener("input", () => {
-    simulatedMinutes = Number(timeline.value);
-    updateTimeDisplay(simulatedMinutes, timeline, timeOutput);
-    updateScene(simulatedMinutes / 1440, satellites, uavs, flows, false);
-    setStatus(status, `Simulated time set to ${formatTime(simulatedMinutes)}.`);
+    simulationDay = Number(timeline.value);
+    updateTimeDisplay(simulationDay, timeline, timeOutput);
+    updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
+    setStatus(status, `Simulated date set to ${formatSimulationDate(simulationDay)}.`);
+  });
+
+  waterRegionSelect?.addEventListener("change", () => {
+    const region = waterRegions.find((item) => item.userData.config.id === waterRegionSelect.value);
+    if (!region) return;
+    if (selectedObject?.userData.visual && selectedObject.userData.kind !== "waterRegion") {
+      selectedObject.userData.visual.scale.setScalar(1);
+    }
+    selectedObject = region;
+    selectedWaterRegion = region;
+    setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+    updateInfoPanel(container, selectedWaterRegion.userData.info);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+    if (currentScale !== "global") {
+      cameraTween = createCameraTween(
+        camera,
+        controls,
+        getCameraPreset(currentScale, selectedWaterRegion),
+        reducedMotion,
+      );
+    }
+    setStatus(status, `${selectedWaterRegion.userData.config.name} selected.`);
+  });
+
+  waterVariableSelect?.addEventListener("change", () => {
+    selectedWaterVariable = waterVariableSelect.value;
+    updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+    setStatus(status, `${WATER_VARIABLE_LABELS[selectedWaterVariable]} water-state layer selected.`);
   });
 
   canvas.addEventListener("pointerdown", (event) => {
@@ -166,9 +280,26 @@ async function initializeEarthVision(container) {
     pointerStart = null;
     const selected = pickObject(event, canvas, camera, interactables);
     if (!selected) return;
-    if (selectedObject?.userData.visual) selectedObject.userData.visual.scale.setScalar(1);
+    if (selectedObject?.userData.visual && selectedObject.userData.kind !== "waterRegion") {
+      selectedObject.userData.visual.scale.setScalar(1);
+    }
     selectedObject = selected;
-    if (selectedObject.userData.visual) selectedObject.userData.visual.scale.setScalar(1.18);
+    if (selectedObject.userData.kind === "waterRegion") {
+      selectedWaterRegion = selectedObject;
+      if (waterRegionSelect) waterRegionSelect.value = selectedWaterRegion.userData.config.id;
+      setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+      updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+      if (currentScale !== "global") {
+        cameraTween = createCameraTween(
+          camera,
+          controls,
+          getCameraPreset(currentScale, selectedWaterRegion),
+          reducedMotion,
+        );
+      }
+    } else if (selectedObject.userData.visual) {
+      selectedObject.userData.visual.scale.setScalar(1.18);
+    }
     updateInfoPanel(container, selectedObject.userData.info);
     setStatus(status, `${selectedObject.userData.info.name} selected. Details updated.`);
   });
@@ -176,10 +307,30 @@ async function initializeEarthVision(container) {
   canvas.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    const nextIndex = selectedObject ? (interactables.indexOf(selectedObject) + 1) % interactables.length : 0;
-    if (selectedObject?.userData.visual) selectedObject.userData.visual.scale.setScalar(1);
-    selectedObject = interactables[nextIndex];
-    if (selectedObject.userData.visual) selectedObject.userData.visual.scale.setScalar(1.18);
+    const visibleInteractables = interactables.filter(isVisibleInHierarchy);
+    if (!visibleInteractables.length) return;
+    const selectedIndex = visibleInteractables.indexOf(selectedObject);
+    const nextIndex = selectedIndex >= 0 ? (selectedIndex + 1) % visibleInteractables.length : 0;
+    if (selectedObject?.userData.visual && selectedObject.userData.kind !== "waterRegion") {
+      selectedObject.userData.visual.scale.setScalar(1);
+    }
+    selectedObject = visibleInteractables[nextIndex];
+    if (selectedObject.userData.kind === "waterRegion") {
+      selectedWaterRegion = selectedObject;
+      if (waterRegionSelect) waterRegionSelect.value = selectedWaterRegion.userData.config.id;
+      setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+      updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+      if (currentScale !== "global") {
+        cameraTween = createCameraTween(
+          camera,
+          controls,
+          getCameraPreset(currentScale, selectedWaterRegion),
+          reducedMotion,
+        );
+      }
+    } else if (selectedObject.userData.visual) {
+      selectedObject.userData.visual.scale.setScalar(1.18);
+    }
     updateInfoPanel(container, selectedObject.userData.info);
     setStatus(status, `${selectedObject.userData.info.name} selected. Press Enter or Space to inspect the next platform.`);
   });
@@ -191,11 +342,14 @@ async function initializeEarthVision(container) {
     lastFrame = now;
 
     if (isPlaying && !document.hidden) {
-      simulatedMinutes = (simulatedMinutes + deltaSeconds * 42) % 1440;
-      updateTimeDisplay(simulatedMinutes, timeline, timeOutput);
+      simulationDay = (simulationDay + deltaSeconds * 3) % 365;
+      observationPhase = (observationPhase + deltaSeconds * 0.06) % 1;
+      updateTimeDisplay(simulationDay, timeline, timeOutput);
     }
 
-    updateScene(simulatedMinutes / 1440, satellites, uavs, flows, isPlaying && !reducedMotion);
+    updateObservationScene(observationPhase, satellites, uavs, flows, isPlaying && !reducedMotion);
+    updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
     if (!reducedMotion) {
       earth.rotation.y += deltaSeconds * 0.018;
     }
@@ -213,7 +367,8 @@ async function initializeEarthVision(container) {
     if (progress >= 1) cameraTween = null;
   }
 
-  updateScene(simulatedMinutes / 1440, satellites, uavs, flows, false);
+  updateObservationScene(observationPhase, satellites, uavs, flows, false);
+  updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
   requestAnimationFrame(animate);
 
   window.addEventListener("pagehide", () => {
@@ -238,6 +393,10 @@ function showFallback(container, message) {
   const fallback = container.querySelector("[data-earth-fallback]");
   if (canvas) canvas.hidden = true;
   if (fallback) fallback.hidden = false;
+  container.classList.add("is-static");
+  container.querySelectorAll("button, input, select").forEach((control) => {
+    control.disabled = true;
+  });
   setStatus(container.querySelector("[data-earth-status]"), message);
 }
 
@@ -304,6 +463,238 @@ function createStarField(count) {
     new THREE.BufferGeometry().setFromPoints(points),
     new THREE.PointsMaterial({ color: 0xb8e9ff, size: 0.035, transparent: true, opacity: 0.68 }),
   );
+}
+
+function createWaterRegions(group, interactables) {
+  return WATER_REGION_CONFIGS.map((config) => {
+    const anchor = new THREE.Group();
+    const normal = latLonToVector(config.latitude, config.longitude, 1).normalize();
+    anchor.position.copy(normal.clone().multiplyScalar(2.045));
+    anchor.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+
+    const visual = new THREE.Group();
+    const fill = new THREE.Mesh(
+      new THREE.CircleGeometry(0.23, 40),
+      new THREE.MeshBasicMaterial({
+        color: 0x7ad7f0,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.27, 0.31, 40),
+      new THREE.MeshBasicMaterial({
+        color: 0x7ad7f0,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    fill.renderOrder = 3;
+    ring.position.z = 0.006;
+    ring.renderOrder = 4;
+    visual.add(fill, ring);
+    anchor.add(visual);
+
+    anchor.userData.kind = "waterRegion";
+    anchor.userData.config = config;
+    anchor.userData.visual = visual;
+    anchor.userData.fill = fill;
+    anchor.userData.ring = ring;
+    anchor.userData.info = {
+      type: "Synthetic water-state region",
+      name: config.name,
+      description: `${config.process} Values are conceptual normalized indices, not observations.`,
+      variable: "Surface water, soil moisture, groundwater, and total water storage",
+      spatial: "Concept basin to regional scale",
+      temporal: "Synthetic annual cycle",
+      role: "Explore how complementary observations could constrain changing water states.",
+    };
+    group.add(anchor);
+    interactables.push(anchor);
+    return anchor;
+  });
+}
+
+function calculateWaterState(config, day) {
+  const normalizedDay = ((day % 365) + 365) % 365;
+  const seasonalWave = (lag = 0) => Math.cos(
+    (Math.PI * 2 * (normalizedDay - config.wetPeak - lag)) / 365,
+  );
+  const precipitationPulse = Math.exp(
+    -0.5 * Math.pow((normalizedDay - config.eventDay) / config.eventWidth, 2),
+  ) * config.eventStrength;
+  const slowPressure = config.trend * Math.sin(
+    (Math.PI * 2 * normalizedDay) / 365 - Math.PI / 2,
+  );
+  const managementCycle = config.management * Math.sin(
+    (Math.PI * 4 * normalizedDay) / 365 + 0.6,
+  );
+
+  const surfaceWater = clampWaterIndex(
+    config.surfaceAmplitude * seasonalWave(5) + precipitationPulse + managementCycle,
+  );
+  const soilMoisture = clampWaterIndex(
+    config.soilAmplitude * seasonalWave(18) + precipitationPulse * 0.58 + slowPressure * 0.22,
+  );
+  const groundwater = clampWaterIndex(
+    config.groundwaterAmplitude * seasonalWave(config.groundwaterLag)
+      + precipitationPulse * 0.2
+      + slowPressure
+      + managementCycle * 0.18,
+  );
+  const totalWaterStorage = clampWaterIndex(
+    surfaceWater * 0.28 + soilMoisture * 0.32 + groundwater * 0.4,
+  );
+
+  return { surfaceWater, soilMoisture, groundwater, totalWaterStorage };
+}
+
+function clampWaterIndex(value) {
+  return Math.max(-1, Math.min(1, value));
+}
+
+function validateWaterModel(configs) {
+  configs.forEach((config) => {
+    const ranges = Object.keys(WATER_VARIABLE_LABELS).reduce((result, variable) => {
+      result[variable] = { min: Infinity, max: -Infinity };
+      return result;
+    }, {});
+    for (let day = 0; day < 365; day += 1) {
+      const state = calculateWaterState(config, day);
+      Object.entries(state).forEach(([variable, value]) => {
+        if (!Number.isFinite(value) || value < -1 || value > 1) {
+          throw new Error(`Invalid synthetic water state for ${config.id} on day ${day}.`);
+        }
+        ranges[variable].min = Math.min(ranges[variable].min, value);
+        ranges[variable].max = Math.max(ranges[variable].max, value);
+      });
+    }
+    Object.entries(ranges).forEach(([variable, range]) => {
+      if (range.max - range.min < 0.1) {
+        throw new Error(`Synthetic ${variable} does not vary meaningfully for ${config.id}.`);
+      }
+    });
+  });
+}
+
+function updateWaterScene(day, regions, variable) {
+  regions.forEach((region) => {
+    const state = calculateWaterState(region.userData.config, day);
+    const value = state[variable];
+    const magnitude = Math.abs(value);
+    region.userData.currentState = state;
+    region.userData.currentValue = value;
+    region.userData.fill.material.color.copy(WATER_NORMAL_COLOR);
+    region.userData.fill.material.color.lerp(
+      value < 0 ? WATER_DRY_COLOR : WATER_WET_COLOR,
+      magnitude,
+    );
+    region.userData.fill.material.opacity = 0.38 + magnitude * 0.34;
+    region.userData.ring.material.color.copy(region.userData.fill.material.color);
+    region.userData.ring.material.opacity = region.userData.isSelected ? 0.95 : 0.25 + magnitude * 0.28;
+    region.userData.visual.scale.setScalar(0.88 + magnitude * 0.5);
+  });
+}
+
+function setSelectedWaterRegion(regions, selectedRegion) {
+  regions.forEach((region) => {
+    region.userData.isSelected = region === selectedRegion;
+    region.userData.ring.material.opacity = region === selectedRegion ? 0.95 : 0.3;
+  });
+}
+
+function updateWaterPanel(container, region, variable, day, refreshSeries) {
+  const config = region.userData.config;
+  const value = calculateWaterState(config, day)[variable];
+  const dateOutput = container.querySelector("[data-water-date]");
+  const valueOutput = container.querySelector("[data-water-value]");
+  const conditionOutput = container.querySelector("[data-water-condition]");
+  const chart = container.querySelector("[data-water-chart]");
+  const path = container.querySelector("[data-water-chart-line]");
+  const marker = container.querySelector("[data-water-chart-marker]");
+  const point = container.querySelector("[data-water-chart-point]");
+
+  if (dateOutput) dateOutput.textContent = formatSimulationDate(day);
+  if (valueOutput) valueOutput.textContent = `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+  if (conditionOutput) {
+    const condition = getWaterCondition(value);
+    conditionOutput.textContent = condition.label;
+    conditionOutput.className = condition.className;
+  }
+
+  const chartKey = `${config.id}:${variable}`;
+  if (chart && path && (refreshSeries || chart.dataset.seriesKey !== chartKey)) {
+    const commands = [];
+    for (let sampleDay = 0; sampleDay < 365; sampleDay += 2) {
+      const sampleValue = calculateWaterState(config, sampleDay)[variable];
+      const x = chartX(sampleDay);
+      const y = chartY(sampleValue);
+      commands.push(`${commands.length ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`);
+    }
+    path.setAttribute("d", commands.join(" "));
+    chart.dataset.seriesKey = chartKey;
+    chart.setAttribute(
+      "aria-label",
+      `Synthetic annual ${WATER_VARIABLE_LABELS[variable]} cycle for ${config.name}`,
+    );
+  }
+
+  const markerX = chartX(day);
+  const markerY = chartY(value);
+  if (marker) {
+    marker.setAttribute("x1", markerX.toFixed(2));
+    marker.setAttribute("x2", markerX.toFixed(2));
+  }
+  if (point) {
+    point.setAttribute("cx", markerX.toFixed(2));
+    point.setAttribute("cy", markerY.toFixed(2));
+  }
+}
+
+function chartX(day) {
+  return 8 + (Math.max(0, Math.min(364, day)) / 364) * 304;
+}
+
+function chartY(value) {
+  return 56 - clampWaterIndex(value) * 44;
+}
+
+function getWaterCondition(value) {
+  if (value <= -0.25) return { label: "Drier than normal", className: "is-dry" };
+  if (value >= 0.25) return { label: "Wetter than normal", className: "is-wet" };
+  return { label: "Near normal", className: "is-normal" };
+}
+
+function getCameraPreset(scale, region) {
+  if (scale === "global") {
+    return { position: new THREE.Vector3(6.8, 3.5, 7.4), target: new THREE.Vector3(0, 0, 0) };
+  }
+  const normal = region.position.clone().normalize();
+  const side = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(0, 1, 0));
+  if (side.lengthSq() < 0.01) side.set(1, 0, 0);
+  side.normalize();
+  const distance = scale === "local" ? 3.55 : 5.2;
+  return {
+    position: normal.clone().multiplyScalar(distance)
+      .addScaledVector(side, scale === "local" ? 0.2 : 0.45)
+      .add(new THREE.Vector3(0, scale === "local" ? 0.12 : 0.25, 0)),
+    target: normal.clone().multiplyScalar(scale === "local" ? 1.82 : 1.55),
+  };
+}
+
+function createCameraTween(camera, controls, preset, reducedMotion) {
+  return {
+    fromPosition: camera.position.clone(),
+    toPosition: preset.position,
+    fromTarget: controls.target.clone(),
+    toTarget: preset.target,
+    start: performance.now(),
+    duration: reducedMotion ? 1 : 700,
+  };
 }
 
 function createSatellites(group, interactables) {
@@ -594,11 +985,11 @@ function createDataFlows(group, stations) {
   });
 }
 
-function updateScene(dayFraction, satellites, uavs, flows, animateFlows) {
+function updateObservationScene(observationPhase, satellites, uavs, flows, animateFlows) {
   const fullTurn = Math.PI * 2;
   satellites.forEach((satellite) => {
     const config = satellite.userData.config;
-    const angle = fullTurn * (config.phase + dayFraction * config.speed);
+    const angle = fullTurn * (config.phase + observationPhase * config.speed);
     satellite.position.copy(orbitPosition(config.radius, config.inclination, angle));
     satellite.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), satellite.position.clone().negate().normalize());
   });
@@ -610,7 +1001,7 @@ function updateScene(dayFraction, satellites, uavs, flows, animateFlows) {
     if (tangentA.lengthSq() < 0.01) tangentA.set(1, 0, 0);
     tangentA.normalize();
     const tangentB = new THREE.Vector3().crossVectors(normal, tangentA).normalize();
-    const angle = fullTurn * (dayFraction * 2.4 + config.phase);
+    const angle = fullTurn * (observationPhase * 2.4 + config.phase);
     uav.position.copy(config.center)
       .addScaledVector(tangentA, Math.cos(angle) * 0.18)
       .addScaledVector(tangentB, Math.sin(angle) * 0.11);
@@ -618,7 +1009,9 @@ function updateScene(dayFraction, satellites, uavs, flows, animateFlows) {
   });
 
   flows.forEach((flow) => {
-    const progress = animateFlows ? (dayFraction * 8 + flow.phase) % 1 : (dayFraction + flow.phase) % 1;
+    const progress = animateFlows
+      ? (observationPhase * 8 + flow.phase) % 1
+      : (observationPhase + flow.phase) % 1;
     flow.particle.position.copy(flow.curve.getPoint(progress));
   });
 }
@@ -649,11 +1042,20 @@ function pickObject(event, canvas, camera, interactables) {
   );
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(interactables, true);
+  const hits = raycaster.intersectObjects(interactables.filter(isVisibleInHierarchy), true);
   if (!hits.length) return null;
   let object = hits[0].object;
   while (object && !object.userData.info) object = object.parent;
   return object || null;
+}
+
+function isVisibleInHierarchy(object) {
+  let current = object;
+  while (current) {
+    if (!current.visible) return false;
+    current = current.parent;
+  }
+  return true;
 }
 
 function updateInfoPanel(container, info) {
@@ -664,16 +1066,20 @@ function updateInfoPanel(container, info) {
   });
 }
 
-function updateTimeDisplay(minutes, input, output) {
-  if (input) input.value = String(Math.round(minutes));
-  if (output) output.textContent = formatTime(minutes);
+function updateTimeDisplay(day, input, output) {
+  const normalizedDay = Math.round(((day % 365) + 365) % 365);
+  if (input) input.value = String(normalizedDay);
+  if (output) output.textContent = `${formatSimulationDate(normalizedDay)} · Day ${normalizedDay + 1}`;
 }
 
-function formatTime(minutes) {
-  const normalized = Math.round(minutes) % 1440;
-  const hours = Math.floor(normalized / 60);
-  const remainingMinutes = normalized % 60;
-  return `${String(hours).padStart(2, "0")}:${String(remainingMinutes).padStart(2, "0")}`;
+function formatSimulationDate(day) {
+  let remainingDays = Math.round(((day % 365) + 365) % 365);
+  let monthIndex = 0;
+  while (remainingDays >= MONTH_LENGTHS[monthIndex]) {
+    remainingDays -= MONTH_LENGTHS[monthIndex];
+    monthIndex += 1;
+  }
+  return `${MONTH_NAMES[monthIndex]} ${remainingDays + 1}`;
 }
 
 function updatePlayButton(button, isPlaying) {
