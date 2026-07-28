@@ -122,24 +122,6 @@ const WATER_REGION_CONFIGS = [
   },
 ];
 
-const LOCAL_SITE_CONFIG = {
-  id: "local-experimental-catchment",
-  name: "Independent Local Experimental Catchment",
-  latitude: 40.8,
-  longitude: -77.9,
-  wetPeak: 126,
-  eventDay: 151,
-  eventWidth: 11,
-  eventStrength: 0.38,
-  surfaceAmplitude: 0.56,
-  soilAmplitude: 0.64,
-  groundwaterAmplitude: 0.34,
-  groundwaterLag: 58,
-  trend: -0.05,
-  management: 0,
-  process: "A separate conceptual field catchment with event-scale surface response and delayed subsurface storage.",
-};
-
 const root = document.querySelector("[data-earth-vision]");
 
 if (root) {
@@ -156,6 +138,7 @@ async function initializeEarthVision(container) {
   const timeline = container.querySelector("[data-time]");
   const timeOutput = container.querySelector("[data-time-output]");
   const playButton = container.querySelector("[data-play]");
+  const resetButton = container.querySelector("[data-reset-view]");
   const waterRegionSelect = container.querySelector("[data-water-region]");
   const waterVariableSelect = container.querySelector("[data-water-variable]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -216,14 +199,14 @@ async function initializeEarthVision(container) {
   Object.values(groups).forEach((group) => world.add(group));
 
   const interactables = [];
-  validateWaterModel([...WATER_REGION_CONFIGS, LOCAL_SITE_CONFIG]);
+  validateWaterModel(WATER_REGION_CONFIGS);
   const waterRegions = createWaterRegions(groups.waterStates, interactables);
   const satellites = createSatellites(groups.satellites, interactables);
   const stations = createGroundStations(groups.ground, interactables);
   const uavs = createUavs(groups.uav, interactables);
   createLowAltitudeLayers(groups.lowAltitude);
   const flows = createDataFlows(groups.dataFlows, stations);
-  const scaleDetails = createScaleDetails(world, waterRegions);
+  const scaleDetails = createScaleDetails(world, waterRegions, interactables);
   const layerVisibility = {
     waterStates: true,
     satellites: true,
@@ -244,9 +227,6 @@ async function initializeEarthVision(container) {
   let cameraTween = null;
   let pointerStart = null;
   let disposed = false;
-  const getActiveWaterLocation = () => (
-    currentScale === "local" ? scaleDetails.localSite : selectedWaterRegion
-  );
 
   canvas.hidden = false;
   fallback.hidden = true;
@@ -255,10 +235,15 @@ async function initializeEarthVision(container) {
     : "Interactive scene ready. Drag to rotate, scroll or pinch to zoom, and select an observation platform or water region.");
   setSelectedWaterRegion(waterRegions, selectedWaterRegion);
   updateTimeDisplay(simulationDay, timeline, timeOutput);
-  updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
+  updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
   updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
+  updateFocusedSatelliteVisibility(satellites, currentScale, selectedWaterVariable, layerVisibility.satellites);
   updateScaleSummary(container, currentScale, selectedWaterRegion);
+  updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
   updatePlayButton(playButton, isPlaying);
+  controls.addEventListener("start", () => {
+    cameraTween = null;
+  });
 
   const resize = () => {
     const width = Math.max(canvas.clientWidth, 1);
@@ -278,6 +263,7 @@ async function initializeEarthVision(container) {
       if (group) group.visible = input.checked;
       layerVisibility[input.dataset.layer] = input.checked;
       updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
+      updateFocusedSatelliteVisibility(satellites, currentScale, selectedWaterVariable, layerVisibility.satellites);
       setStatus(status, `${input.dataset.label || input.parentElement.textContent.trim()} layer ${input.checked ? "shown" : "hidden"}.`);
     });
   });
@@ -289,16 +275,30 @@ async function initializeEarthVision(container) {
         item.classList.toggle("is-active", item === button);
       });
       currentScale = button.dataset.scale;
+      controls.autoRotate = currentScale === "global" && !reducedMotion;
       updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
+      updateFocusedSatelliteVisibility(satellites, currentScale, selectedWaterVariable, layerVisibility.satellites);
       updateScaleSummary(container, currentScale, selectedWaterRegion);
-      updateInfoPanel(container, getActiveWaterLocation().userData.info);
-      updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
-      const preset = getCameraPreset(currentScale, selectedWaterRegion, scaleDetails.localSite);
+      updateInfoPanel(container, selectedWaterRegion.userData.info);
+      updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+      updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
+      const preset = getCameraPreset(currentScale, selectedWaterRegion);
       if (preset) {
         cameraTween = createCameraTween(camera, controls, preset, reducedMotion);
         setStatus(status, `${button.textContent.trim()} scale selected.`);
       }
     });
+  });
+
+  resetButton?.addEventListener("click", () => {
+    cameraTween = createCameraTween(
+      camera,
+      controls,
+      getCameraPreset(currentScale, selectedWaterRegion),
+      reducedMotion,
+    );
+    controls.autoRotate = currentScale === "global" && !reducedMotion;
+    setStatus(status, `${capitalize(currentScale)} view reset for ${selectedWaterRegion.userData.config.name}.`);
   });
 
   playButton?.addEventListener("click", () => {
@@ -312,7 +312,8 @@ async function initializeEarthVision(container) {
     updateTimeDisplay(simulationDay, timeline, timeOutput);
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
     updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
-    updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, false);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
+    updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
     setStatus(status, `Simulated date set to ${formatSimulationDate(simulationDay)}.`);
   });
 
@@ -328,12 +329,13 @@ async function initializeEarthVision(container) {
     updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
     updateScaleSummary(container, currentScale, selectedWaterRegion);
     updateInfoPanel(container, selectedWaterRegion.userData.info);
-    updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+    updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
     if (currentScale !== "global") {
       cameraTween = createCameraTween(
         camera,
         controls,
-        getCameraPreset(currentScale, selectedWaterRegion, scaleDetails.localSite),
+        getCameraPreset(currentScale, selectedWaterRegion),
         reducedMotion,
       );
     }
@@ -344,7 +346,9 @@ async function initializeEarthVision(container) {
     selectedWaterVariable = waterVariableSelect.value;
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
     updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
-    updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
+    updateFocusedSatelliteVisibility(satellites, currentScale, selectedWaterVariable, layerVisibility.satellites);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+    updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
     setStatus(status, `${WATER_VARIABLE_LABELS[selectedWaterVariable]} water-state layer selected.`);
   });
 
@@ -369,12 +373,13 @@ async function initializeEarthVision(container) {
       setSelectedWaterRegion(waterRegions, selectedWaterRegion);
       updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
       updateScaleSummary(container, currentScale, selectedWaterRegion);
-      updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
+      updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+      updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
       if (currentScale !== "global") {
         cameraTween = createCameraTween(
           camera,
           controls,
-          getCameraPreset(currentScale, selectedWaterRegion, scaleDetails.localSite),
+          getCameraPreset(currentScale, selectedWaterRegion),
           reducedMotion,
         );
       }
@@ -402,12 +407,13 @@ async function initializeEarthVision(container) {
       setSelectedWaterRegion(waterRegions, selectedWaterRegion);
       updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility, groups);
       updateScaleSummary(container, currentScale, selectedWaterRegion);
-      updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, true);
+      updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+      updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
       if (currentScale !== "global") {
         cameraTween = createCameraTween(
           camera,
           controls,
-          getCameraPreset(currentScale, selectedWaterRegion, scaleDetails.localSite),
+          getCameraPreset(currentScale, selectedWaterRegion),
           reducedMotion,
         );
       }
@@ -428,6 +434,7 @@ async function initializeEarthVision(container) {
       simulationDay = (simulationDay + deltaSeconds * 3) % 365;
       observationPhase = (observationPhase + deltaSeconds * 0.06) % 1;
       updateTimeDisplay(simulationDay, timeline, timeOutput);
+      updateSceneStatus(container, currentScale, selectedWaterRegion, selectedWaterVariable, simulationDay);
     }
 
     updateObservationScene(observationPhase, satellites, uavs, flows, isPlaying && !reducedMotion);
@@ -437,12 +444,10 @@ async function initializeEarthVision(container) {
       selectedWaterRegion,
       selectedWaterVariable,
       observationPhase,
-      currentScale,
-      scaleDetails.localSite,
     );
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
     updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
-    updateWaterPanel(container, getActiveWaterLocation(), selectedWaterVariable, simulationDay, false);
+    updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
     updateCameraTween(now);
     controls.update();
     renderer.render(scene, camera);
@@ -464,8 +469,6 @@ async function initializeEarthVision(container) {
     selectedWaterRegion,
     selectedWaterVariable,
     observationPhase,
-    currentScale,
-    scaleDetails.localSite,
   );
   updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
   updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
@@ -671,7 +674,7 @@ function createWaterRegions(group, interactables) {
   });
 }
 
-function createScaleDetails(world, waterRegions) {
+function createScaleDetails(world, waterRegions, interactables) {
   const root = new THREE.Group();
   const byRegion = new Map();
 
@@ -707,8 +710,11 @@ function createScaleDetails(world, waterRegions) {
     basinBoundary.renderOrder = 5;
     regionalWater.add(basinFill, basinBoundary);
 
-    const uavObservation = createScaleUavObservation();
-    regionalAnchor.add(regionalWater, uavObservation);
+    const regionConfig = region.userData.config;
+    const groundObservations = createScaleGroundObservations(regionConfig, interactables);
+    const uavObservation = createScaleUavObservation(regionConfig, interactables);
+    const localWater = createLocalWaterLayers();
+    regionalAnchor.add(regionalWater, groundObservations, uavObservation, localWater.group);
     regionalAnchor.visible = false;
     root.add(regionalAnchor);
 
@@ -717,68 +723,63 @@ function createScaleDetails(world, waterRegions) {
       regionalWater,
       basinFill,
       basinBoundary,
+      groundObservations,
       uavObservation,
+      localWater,
     });
   });
-
-  const localSite = new THREE.Group();
-  localSite.position.copy(latLonToVector(
-    LOCAL_SITE_CONFIG.latitude,
-    LOCAL_SITE_CONFIG.longitude,
-    2.045,
-  ));
-  localSite.quaternion.setFromUnitVectors(
-    new THREE.Vector3(0, 0, 1),
-    localSite.position.clone().normalize(),
-  );
-  localSite.userData.config = LOCAL_SITE_CONFIG;
-  localSite.userData.info = {
-    type: "Independent local concept site",
-    name: LOCAL_SITE_CONFIG.name,
-    description: `${LOCAL_SITE_CONFIG.process} This site is separate from the selected Regional basin.`,
-    variable: "Surface water, soil moisture, groundwater, and local observations",
-    spatial: "Field to experimental-catchment scale",
-    temporal: "Synthetic event and annual cycle",
-    role: "Illustrate local process monitoring independently from the regional remote-sensing example.",
-  };
-
-  const groundObservations = createScaleGroundObservations();
-  const localWater = createLocalWaterLayers();
-  const localSiteBoundary = new THREE.Mesh(
-    new THREE.RingGeometry(0.39, 0.415, 44),
-    new THREE.MeshBasicMaterial({
-      color: 0xd8f5ff,
-      transparent: true,
-      opacity: 0.46,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    }),
-  );
-  localSiteBoundary.position.z = 0.02;
-  localSite.add(localSiteBoundary, groundObservations, localWater.group);
-  localSite.visible = false;
-  root.add(localSite);
 
   const observationLink = createScaleObservationLink();
   root.add(observationLink.group);
   world.add(root);
-  return {
-    root,
-    byRegion,
-    observationLink,
-    localSite,
-    localDetail: { groundObservations, localWater, localSiteBoundary },
-  };
+  return { root, byRegion, observationLink };
 }
 
-function createScaleGroundObservations() {
+function createScaleGroundObservations(regionConfig, interactables) {
   const group = new THREE.Group();
   [
-    { kind: "well", color: 0x62d7ff, x: -0.2, y: -0.12 },
-    { kind: "soil", color: 0x7dffc5, x: 0.16, y: 0.12 },
-    { kind: "river", color: 0xffce72, x: 0.2, y: -0.17 },
+    {
+      kind: "well",
+      name: "Groundwater well",
+      color: 0x62d7ff,
+      x: -0.2,
+      y: -0.12,
+      variable: "Groundwater level and storage response",
+      temporal: "Event to seasonal sampling",
+    },
+    {
+      kind: "soil",
+      name: "Soil-moisture sensor",
+      color: 0x7dffc5,
+      x: 0.16,
+      y: 0.12,
+      variable: "Profile soil moisture",
+      temporal: "Sub-daily to seasonal sampling",
+    },
+    {
+      kind: "river",
+      name: "River gauge",
+      color: 0xffce72,
+      x: 0.2,
+      y: -0.17,
+      variable: "River stage and discharge",
+      temporal: "Continuous to daily sampling",
+    },
   ].forEach((marker) => {
-    group.add(createScaleObservationMarker(marker));
+    const observation = createScaleObservationMarker(marker);
+    observation.userData.kind = "scaleObservation";
+    observation.userData.visual = observation;
+    observation.userData.info = {
+      type: "Regional concept observation",
+      name: `${marker.name} · ${regionConfig.name}`,
+      description: `A simulated ${marker.name.toLowerCase()} within the selected concept basin.`,
+      variable: marker.variable,
+      spatial: "Point observation within a basin network",
+      temporal: marker.temporal,
+      role: "Link local process information to the synthetic regional water-state estimate.",
+    };
+    group.add(observation);
+    interactables.push(observation);
     const connector = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0.025),
@@ -833,7 +834,7 @@ function createScaleObservationMarker({ kind, color, x, y }) {
   return marker;
 }
 
-function createScaleUavObservation() {
+function createScaleUavObservation(regionConfig, interactables) {
   const group = new THREE.Group();
   const material = new THREE.MeshBasicMaterial({ color: 0xff8fc7 });
   const armGeometry = new THREE.BoxGeometry(0.18, 0.018, 0.018);
@@ -854,6 +855,18 @@ function createScaleUavObservation() {
   group.position.set(-0.08, 0.27, 0.12);
   footprint.position.set(0, -0.1, -0.08);
   group.add(armA, armB, footprint);
+  group.userData.kind = "scaleObservation";
+  group.userData.visual = group;
+  group.userData.info = {
+    type: "Regional concept UAV",
+    name: `UAV survey · ${regionConfig.name}`,
+    description: "A simulated targeted flight that bridges point sensors and the basin-scale observation footprint.",
+    variable: "Surface-water extent, vegetation condition, and terrain context",
+    spatial: "Field transect to basin subregion",
+    temporal: "Targeted event-based survey",
+    role: "Resolve spatial heterogeneity around the selected regional water-state estimate.",
+  };
+  interactables.push(group);
   return group;
 }
 
@@ -916,18 +929,17 @@ function updateScaleDetails(scale, selectedRegion, waterRegions, details, visibi
   groups.dataFlows.visible = visibility.dataFlows && scale === "global";
 
   waterRegions.forEach((region) => {
-    region.visible = scale === "global" || (scale === "regional" && region === selectedRegion);
+    region.visible = scale === "global" || region === selectedRegion;
   });
 
   details.byRegion.forEach((detail, regionId) => {
     const isCurrent = regionId === selectedRegion.userData.config.id;
-    detail.regionalAnchor.visible = isCurrent && scale === "regional";
-    detail.regionalWater.visible = visibility.waterStates && scale === "regional";
-    detail.uavObservation.visible = visibility.uav && scale === "regional";
+    detail.regionalAnchor.visible = isCurrent && scale !== "global";
+    detail.regionalWater.visible = visibility.waterStates;
+    detail.groundObservations.visible = visibility.ground;
+    detail.uavObservation.visible = visibility.uav;
+    detail.localWater.group.visible = visibility.waterStates && scale === "local";
   });
-  details.localSite.visible = scale === "local";
-  details.localDetail.groundObservations.visible = visibility.ground && scale === "local";
-  details.localDetail.localWater.group.visible = visibility.waterStates && scale === "local";
 
   details.observationLink.group.visible = scale !== "global"
     && visibility.satellites
@@ -937,16 +949,15 @@ function updateScaleDetails(scale, selectedRegion, waterRegions, details, visibi
 function updateScaleWaterDetails(details, selectedRegion, day, selectedVariable) {
   const detail = details.byRegion.get(selectedRegion.userData.config.id);
   if (!detail) return;
-  const regionalState = calculateWaterState(selectedRegion.userData.config, day);
-  const selectedValue = regionalState[selectedVariable];
+  const state = calculateWaterState(selectedRegion.userData.config, day);
+  const selectedValue = state[selectedVariable];
   applyWaterColor(detail.basinFill.material, selectedValue);
   detail.basinFill.material.opacity = 0.1 + Math.abs(selectedValue) * 0.22;
   detail.basinBoundary.material.color.copy(detail.basinFill.material.color);
   detail.basinBoundary.material.opacity = 0.56 + Math.abs(selectedValue) * 0.34;
 
-  const localState = calculateWaterState(LOCAL_SITE_CONFIG, day);
-  Object.entries(details.localDetail.localWater.layers).forEach(([variable, mesh]) => {
-    const value = localState[variable];
+  Object.entries(detail.localWater.layers).forEach(([variable, mesh]) => {
+    const value = state[variable];
     applyWaterColor(mesh.material, value);
     mesh.material.opacity = 0.42 + Math.abs(value) * 0.42;
     mesh.scale.setScalar(0.9 + Math.abs(value) * 0.28);
@@ -959,15 +970,12 @@ function updateScaleObservationLink(
   selectedRegion,
   variable,
   observationPhase,
-  scale,
-  localSite,
 ) {
-  const satelliteIndex = variable === "surfaceWater" ? 0 : variable === "soilMoisture" ? 1 : 2;
+  const satelliteIndex = getSatelliteIndexForVariable(variable);
   const satellite = satellites[satelliteIndex];
   if (!satellite) return;
   const start = satellite.position;
-  const target = scale === "local" ? localSite : selectedRegion;
-  const end = target.position.clone().normalize().multiplyScalar(2.09);
+  const end = selectedRegion.position.clone().normalize().multiplyScalar(2.09);
   const midpoint = start.clone().add(end).multiplyScalar(0.5).normalize().multiplyScalar(3.45);
   const positionAttribute = link.line.geometry.getAttribute("position");
 
@@ -1001,14 +1009,25 @@ function updateScaleObservationLink(
   link.pulse.material.color.setHex(satellite.userData.config.color);
 }
 
+function updateFocusedSatelliteVisibility(satellites, scale, variable, layerVisible) {
+  const focusedIndex = getSatelliteIndexForVariable(variable);
+  satellites.forEach((satellite, index) => {
+    const isVisible = layerVisible && (scale === "global" || index === focusedIndex);
+    satellite.visible = isVisible;
+    if (satellite.userData.orbit) satellite.userData.orbit.visible = isVisible;
+  });
+}
+
+function getSatelliteIndexForVariable(variable) {
+  if (variable === "surfaceWater") return 0;
+  if (variable === "soilMoisture") return 1;
+  return 2;
+}
+
 function updateScaleSummary(container, scale, selectedRegion) {
   const title = container.querySelector("[data-scale-summary-title]");
   const description = container.querySelector("[data-scale-summary-description]");
   const localLayerKey = container.querySelector("[data-local-layer-key]");
-  const regionalWaterControl = container.querySelector("[data-regional-water-control]");
-  const localWaterLocation = container.querySelector("[data-local-water-location]");
-  const localStationKeys = container.querySelectorAll("[data-local-station-key]");
-  const regionalUavKeys = container.querySelectorAll("[data-regional-uav-key]");
   const regionName = selectedRegion.userData.config.name;
   const summaries = {
     global: {
@@ -1017,24 +1036,46 @@ function updateScaleSummary(container, scale, selectedRegion) {
     },
     regional: {
       title: `${regionName} · Regional network`,
-      description: "A basin-wide water footprint is linked to UAV coverage and the satellite type relevant to the selected variable; point-station monitoring is intentionally omitted.",
+      description: "A basin-wide water footprint combines a groundwater well, soil sensor, river gauge, UAV survey, and the satellite type relevant to the selected variable.",
     },
     local: {
-      title: `${LOCAL_SITE_CONFIG.name} · Local process view`,
-      description: "A separate concept site, independent of the selected Regional basin, shows groundwater-well, soil-sensor, and river-gauge monitoring with changing local water layers.",
+      title: `${regionName} · Local process view`,
+      description: "A closer view of the same selected region separates surface-water, soil-moisture, and groundwater changes while retaining nearby station and UAV context.",
     },
   };
   if (title) title.textContent = summaries[scale].title;
   if (description) description.textContent = summaries[scale].description;
   if (localLayerKey) localLayerKey.hidden = scale !== "local";
-  if (regionalWaterControl) regionalWaterControl.hidden = scale === "local";
-  if (localWaterLocation) localWaterLocation.hidden = scale !== "local";
-  localStationKeys.forEach((key) => {
-    key.hidden = scale === "regional";
-  });
-  regionalUavKeys.forEach((key) => {
-    key.hidden = scale === "local";
-  });
+}
+
+function updateSceneStatus(container, scale, selectedRegion, variable, day) {
+  const panel = container.querySelector("[data-scene-status]");
+  if (!panel) return;
+
+  const normalizedDay = Math.round(((day % 365) + 365) % 365);
+  const statusKey = `${scale}:${selectedRegion.userData.config.id}:${variable}:${normalizedDay}`;
+  if (panel.dataset.statusKey === statusKey) return;
+  panel.dataset.statusKey = statusKey;
+
+  const scaleOutput = container.querySelector("[data-scene-scale]");
+  const regionOutput = container.querySelector("[data-scene-region]");
+  const stateOutput = container.querySelector("[data-scene-state]");
+  const contextOutput = container.querySelector("[data-scene-context]");
+  const state = calculateWaterState(selectedRegion.userData.config, day);
+  const condition = getWaterCondition(state[variable]);
+  const contexts = {
+    global: "All configured observing systems and four water regions",
+    regional: "Selected basin water state, stations, UAV, and satellite link",
+    local: "Nested water stores with nearby station and UAV context",
+  };
+
+  if (scaleOutput) scaleOutput.textContent = `${capitalize(scale)} view`;
+  if (regionOutput) regionOutput.textContent = selectedRegion.userData.config.name;
+  if (stateOutput) {
+    stateOutput.textContent = `${WATER_VARIABLE_LABELS[variable]} · ${formatSimulationDate(day)} · ${condition.label}`;
+  }
+  if (contextOutput) contextOutput.textContent = contexts[scale];
+  panel.hidden = false;
 }
 
 function calculateWaterState(config, day) {
@@ -1191,21 +1232,20 @@ function getWaterCondition(value) {
   return { label: "Near normal", className: "is-normal" };
 }
 
-function getCameraPreset(scale, region, localSite) {
+function getCameraPreset(scale, region) {
   if (scale === "global") {
     return { position: new THREE.Vector3(6.8, 3.5, 7.4), target: new THREE.Vector3(0, 0, 0) };
   }
-  const focus = scale === "local" ? localSite : region;
-  const normal = focus.position.clone().normalize();
+  const normal = region.position.clone().normalize();
   const side = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(0, 1, 0));
   if (side.lengthSq() < 0.01) side.set(1, 0, 0);
   side.normalize();
-  const distance = scale === "local" ? 3.55 : 5.2;
+  const distance = scale === "local" ? 3.6 : 5.05;
   return {
     position: normal.clone().multiplyScalar(distance)
-      .addScaledVector(side, scale === "local" ? 0.2 : 0.45)
-      .add(new THREE.Vector3(0, scale === "local" ? 0.12 : 0.25, 0)),
-    target: normal.clone().multiplyScalar(scale === "local" ? 1.82 : 1.55),
+      .addScaledVector(side, scale === "local" ? 0.24 : 0.48)
+      .add(new THREE.Vector3(0, scale === "local" ? 0.14 : 0.26, 0)),
+    target: normal.clone().multiplyScalar(scale === "local" ? 1.8 : 1.56),
   };
 }
 
@@ -1278,6 +1318,7 @@ function createSatellites(group, interactables) {
     };
     anchor.userData.visual = visual;
     anchor.userData.config = config;
+    anchor.userData.orbit = orbit;
     group.add(anchor);
     interactables.push(anchor);
     return anchor;
@@ -1611,6 +1652,10 @@ function updatePlayButton(button, isPlaying) {
   const label = button.querySelector("[data-play-label]");
   if (label) label.textContent = isPlaying ? "Pause" : "Play";
   else button.textContent = isPlaying ? "Pause" : "Play";
+}
+
+function capitalize(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function setStatus(element, message) {

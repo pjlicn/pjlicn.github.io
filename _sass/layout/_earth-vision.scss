@@ -158,6 +158,35 @@
   }
 }
 
+.earth-observatory__scale-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.earth-observatory__reset {
+  min-height: 2.35rem;
+  padding: 0.35rem 0.7rem;
+  color: var(--global-text-color-light);
+  font-size: $type-size-7;
+  font-weight: 700;
+  border: 1px solid var(--global-border-color);
+  border-radius: 0.4rem;
+  background: var(--global-bg-color);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--global-link-color-hover);
+    border-color: var(--global-link-color-hover);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--global-link-color);
+    outline-offset: 2px;
+  }
+}
+
 .earth-observatory__layer-options {
   display: flex;
   flex-wrap: wrap;
@@ -366,6 +395,41 @@
   .legend-ocean { color: #2b739a; }
 }
 
+.earth-observatory__scene-status {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: grid;
+  gap: 0.16rem;
+  max-width: min(22rem, calc(100% - 1.5rem));
+  padding: 0.6rem 0.75rem;
+  color: #d8f5ff;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  border: 1px solid rgba(148, 215, 239, 0.24);
+  border-radius: 0.45rem;
+  background: rgba(2, 10, 18, 0.78);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+
+  > span:first-child {
+    color: #7ddfff;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #fff;
+    font-size: 0.78rem;
+  }
+
+  small {
+    color: #9cc7d8;
+    font-size: 0.64rem;
+  }
+}
+
 .earth-observatory__info {
   padding: 1.25rem 1.35rem;
   border-left: 1px solid var(--global-border-color);
@@ -524,31 +588,6 @@
       outline: 3px solid var(--global-link-color);
       outline-offset: 2px;
     }
-  }
-}
-
-.earth-observatory__local-location {
-  min-width: 0;
-  padding: 0.55rem;
-  border: 1px solid var(--global-border-color);
-  border-radius: 0.35rem;
-
-  span,
-  strong {
-    display: block;
-  }
-
-  span {
-    color: var(--global-text-color-light);
-    font-size: $type-size-7;
-    font-weight: 700;
-  }
-
-  strong {
-    margin-top: 0.25rem;
-    color: var(--global-text-color);
-    font-size: $type-size-7;
-    line-height: 1.35;
   }
 }
 
@@ -805,7 +844,15 @@
   .earth-observatory__segmented {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
+    flex: 1 1 15rem;
+  }
+
+  .earth-observatory__reset {
+    flex: 1 0 auto;
+  }
+
+  .earth-observatory__scene-status {
+    max-width: calc(100% - 1.5rem);
   }
 
   .earth-observatory__workspace,

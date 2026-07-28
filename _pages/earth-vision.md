@@ -27,10 +27,15 @@ author_profile: false
   <div class="earth-observatory__toolbar" aria-label="Visualization controls">
     <fieldset class="earth-observatory__control-group">
       <legend>Spatial scale</legend>
-      <div class="earth-observatory__segmented" role="group" aria-label="Spatial scale preset">
-        <button type="button" class="is-active" data-scale="global" aria-pressed="true">Global</button>
-        <button type="button" data-scale="regional" aria-pressed="false">Regional</button>
-        <button type="button" data-scale="local" aria-pressed="false">Local</button>
+      <div class="earth-observatory__scale-actions">
+        <div class="earth-observatory__segmented" role="group" aria-label="Spatial scale preset">
+          <button type="button" class="is-active" data-scale="global" aria-pressed="true">Global</button>
+          <button type="button" data-scale="regional" aria-pressed="false">Regional</button>
+          <button type="button" data-scale="local" aria-pressed="false">Local</button>
+        </div>
+        <button type="button" class="earth-observatory__reset" data-reset-view>
+          Reset view
+        </button>
       </div>
     </fieldset>
 
@@ -92,6 +97,13 @@ author_profile: false
         <span><i class="legend-uav"></i> UAV</span>
         <span><i class="legend-flow"></i> Data flow</span>
       </div>
+
+      <div class="earth-observatory__scene-status" data-scene-status aria-hidden="true" hidden>
+        <span data-scene-scale>Global view</span>
+        <strong data-scene-region>North China Plain Concept</strong>
+        <span data-scene-state>Total Water Storage · Apr 1</span>
+        <small data-scene-context>All configured observing systems</small>
+      </div>
     </div>
 
     <aside class="earth-observatory__info" data-object-info tabindex="0">
@@ -125,11 +137,11 @@ author_profile: false
         <p data-scale-summary-description>
           Compare four synthetic water regions with satellite, ground, UAV, and low-altitude observing systems.
         </p>
-        <div class="earth-observatory__observation-key" aria-label="Scale-specific observation symbols">
-          <span data-local-station-key><i class="observation-key__well"></i> Groundwater well</span>
-          <span data-local-station-key><i class="observation-key__soil"></i> Soil sensor</span>
-          <span data-local-station-key><i class="observation-key__river"></i> River gauge</span>
-          <span data-regional-uav-key><i class="observation-key__uav"></i> UAV survey</span>
+        <div class="earth-observatory__observation-key" aria-label="Regional and local observation symbols">
+          <span><i class="observation-key__well"></i> Groundwater well</span>
+          <span><i class="observation-key__soil"></i> Soil sensor</span>
+          <span><i class="observation-key__river"></i> River gauge</span>
+          <span><i class="observation-key__uav"></i> UAV survey</span>
         </div>
         <div class="earth-observatory__local-layer-key" data-local-layer-key hidden>
           <span>Outer ring: surface water</span>
@@ -148,7 +160,7 @@ author_profile: false
         </div>
 
         <div class="earth-observatory__water-controls">
-          <label for="earth-water-region" data-regional-water-control>
+          <label for="earth-water-region">
             Concept region
             <select id="earth-water-region" data-water-region>
               <option value="north-china-plain">North China Plain Concept</option>
@@ -157,10 +169,6 @@ author_profile: false
               <option value="managed-reservoir">Managed Reservoir Basin</option>
             </select>
           </label>
-          <div class="earth-observatory__local-location" data-local-water-location hidden>
-            <span>Local concept site</span>
-            <strong>Independent Local Experimental Catchment</strong>
-          </div>
           <label for="earth-water-variable">
             Water variable
             <select id="earth-water-variable" data-water-variable>
@@ -229,6 +237,7 @@ author_profile: false
   <p id="earth-vision-instructions" class="earth-observatory__instructions">
     Drag to rotate, use the wheel or pinch gesture to zoom, select an object for details,
     or use the controls to change scale, layers, water variable, concept region, and simulated date.
+    Regional and Local progressively focus on the same selected region; Reset view restores the current scale preset.
   </p>
   <p id="earth-vision-status" class="visually-hidden" data-earth-status aria-live="polite">
     Static concept view shown.
