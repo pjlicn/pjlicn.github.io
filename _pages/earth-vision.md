@@ -125,11 +125,11 @@ author_profile: false
         <p data-scale-summary-description>
           Compare four synthetic water regions with satellite, ground, UAV, and low-altitude observing systems.
         </p>
-        <div class="earth-observatory__observation-key" aria-label="Regional and local observation symbols">
-          <span><i class="observation-key__well"></i> Groundwater well</span>
-          <span><i class="observation-key__soil"></i> Soil sensor</span>
-          <span><i class="observation-key__river"></i> River gauge</span>
-          <span><i class="observation-key__uav"></i> UAV survey</span>
+        <div class="earth-observatory__observation-key" aria-label="Scale-specific observation symbols">
+          <span data-local-station-key><i class="observation-key__well"></i> Groundwater well</span>
+          <span data-local-station-key><i class="observation-key__soil"></i> Soil sensor</span>
+          <span data-local-station-key><i class="observation-key__river"></i> River gauge</span>
+          <span data-regional-uav-key><i class="observation-key__uav"></i> UAV survey</span>
         </div>
         <div class="earth-observatory__local-layer-key" data-local-layer-key hidden>
           <span>Outer ring: surface water</span>
@@ -148,7 +148,7 @@ author_profile: false
         </div>
 
         <div class="earth-observatory__water-controls">
-          <label for="earth-water-region">
+          <label for="earth-water-region" data-regional-water-control>
             Concept region
             <select id="earth-water-region" data-water-region>
               <option value="north-china-plain">North China Plain Concept</option>
@@ -157,6 +157,10 @@ author_profile: false
               <option value="managed-reservoir">Managed Reservoir Basin</option>
             </select>
           </label>
+          <div class="earth-observatory__local-location" data-local-water-location hidden>
+            <span>Local concept site</span>
+            <strong>Independent Local Experimental Catchment</strong>
+          </div>
           <label for="earth-water-variable">
             Water variable
             <select id="earth-water-variable" data-water-variable>

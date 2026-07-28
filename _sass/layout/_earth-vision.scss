@@ -527,6 +527,31 @@
   }
 }
 
+.earth-observatory__local-location {
+  min-width: 0;
+  padding: 0.55rem;
+  border: 1px solid var(--global-border-color);
+  border-radius: 0.35rem;
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    color: var(--global-text-color-light);
+    font-size: $type-size-7;
+    font-weight: 700;
+  }
+
+  strong {
+    margin-top: 0.25rem;
+    color: var(--global-text-color);
+    font-size: $type-size-7;
+    line-height: 1.35;
+  }
+}
+
 .earth-observatory__water-reading {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
