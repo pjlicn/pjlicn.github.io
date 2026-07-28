@@ -9,6 +9,7 @@ author_profile: false
 
 <p class="earth-vision-page__summary">
   This conceptual interface explores how satellite, ground, and low-altitude observations could work together with data assimilation, machine learning, and process-based models to study a changing Earth across spatial and temporal scales.
+  Simplified geographic land outlines provide spatial context without using satellite imagery or a live map service.
 </p>
 
 <section class="earth-observatory" data-earth-vision aria-labelledby="earth-observatory-title">
@@ -70,6 +71,7 @@ author_profile: false
             and UAV surveys connect regional and near-surface observations.
           </p>
           <ul>
+            <li>Basemap: simplified geographic land outlines over a distinct ocean surface</li>
             <li>Satellite: surface water, soil moisture, and terrestrial water storage</li>
             <li>Ground: groundwater, soil moisture, and river monitoring networks</li>
             <li>Low altitude: near-surface, UAV survey, and regional sensing layers</li>
@@ -82,6 +84,8 @@ author_profile: false
       </div>
 
       <div class="earth-observatory__legend" aria-label="Visualization legend">
+        <span><i class="legend-land"></i> Land</span>
+        <span><i class="legend-ocean"></i> Ocean</span>
         <span><i class="legend-water"></i> Water state</span>
         <span><i class="legend-satellite"></i> Satellite</span>
         <span><i class="legend-ground"></i> Ground</span>
@@ -114,6 +118,25 @@ author_profile: false
           <dd data-info="role">Observation integration and state estimation</dd>
         </div>
       </dl>
+
+      <section class="earth-observatory__scale-summary" aria-labelledby="scale-summary-title">
+        <p class="earth-observatory__info-type">Scale-aware detail</p>
+        <h3 id="scale-summary-title" data-scale-summary-title>Global synthesis</h3>
+        <p data-scale-summary-description>
+          Compare four synthetic water regions with satellite, ground, UAV, and low-altitude observing systems.
+        </p>
+        <div class="earth-observatory__observation-key" aria-label="Regional and local observation symbols">
+          <span><i class="observation-key__well"></i> Groundwater well</span>
+          <span><i class="observation-key__soil"></i> Soil sensor</span>
+          <span><i class="observation-key__river"></i> River gauge</span>
+          <span><i class="observation-key__uav"></i> UAV survey</span>
+        </div>
+        <div class="earth-observatory__local-layer-key" data-local-layer-key hidden>
+          <span>Outer ring: surface water</span>
+          <span>Middle ring: soil moisture</span>
+          <span>Center: groundwater</span>
+        </div>
+      </section>
 
       <section class="earth-observatory__water-panel" aria-labelledby="water-state-title">
         <div class="earth-observatory__water-heading">

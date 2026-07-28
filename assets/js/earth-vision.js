@@ -14,6 +14,43 @@ const WATER_DRY_COLOR = new THREE.Color(0xf2a65a);
 const WATER_NORMAL_COLOR = new THREE.Color(0x7ad7f0);
 const WATER_WET_COLOR = new THREE.Color(0x277da1);
 
+// Deliberately simplified geographic outlines for a token-free conceptual basemap.
+const LAND_POLYGONS = [
+  [
+    [-168, 72], [-150, 70], [-138, 60], [-128, 53], [-124, 43], [-117, 32],
+    [-106, 23], [-97, 18], [-88, 19], [-82, 25], [-80, 32], [-74, 40],
+    [-66, 45], [-59, 52], [-70, 58], [-88, 66], [-105, 72], [-135, 75],
+  ],
+  [
+    [-82, 12], [-74, 8], [-67, -2], [-61, -14], [-58, -28], [-64, -42],
+    [-72, -54], [-76, -42], [-78, -22], [-80, -5],
+  ],
+  [
+    [-54, 60], [-48, 72], [-35, 82], [-20, 80], [-18, 68], [-32, 60],
+  ],
+  [
+    [-10, 36], [-10, 55], [5, 61], [25, 70], [60, 76], [100, 77],
+    [140, 72], [178, 66], [168, 54], [145, 48], [136, 36], [122, 24],
+    [108, 10], [98, 7], [88, 20], [78, 8], [68, 24], [55, 17],
+    [45, 30], [35, 35], [28, 42], [16, 46], [5, 43],
+  ],
+  [
+    [-17, 35], [5, 37], [25, 32], [40, 15], [50, 10], [43, -12],
+    [32, -34], [18, -35], [8, -22], [-5, 5], [-15, 20],
+  ],
+  [
+    [112, -11], [130, -10], [145, -18], [153, -28], [146, -39],
+    [130, -36], [115, -29],
+  ],
+  [
+    [47, -13], [51, -17], [50, -26], [44, -25],
+  ],
+  [
+    [-180, -64], [-140, -69], [-90, -72], [-40, -68], [10, -71],
+    [60, -67], [110, -70], [160, -66], [180, -64], [180, -90], [-180, -90],
+  ],
+];
+
 const WATER_REGION_CONFIGS = [
   {
     id: "north-china-plain",
@@ -168,6 +205,15 @@ async function initializeEarthVision(container) {
   const uavs = createUavs(groups.uav, interactables);
   createLowAltitudeLayers(groups.lowAltitude);
   const flows = createDataFlows(groups.dataFlows, stations);
+  const scaleDetails = createScaleDetails(world, waterRegions);
+  const layerVisibility = {
+    waterStates: true,
+    satellites: true,
+    ground: true,
+    uav: true,
+    lowAltitude: true,
+    dataFlows: true,
+  };
 
   let simulationDay = Number(timeline?.value || 90);
   let observationPhase = simulationDay / 365;
@@ -189,6 +235,8 @@ async function initializeEarthVision(container) {
   setSelectedWaterRegion(waterRegions, selectedWaterRegion);
   updateTimeDisplay(simulationDay, timeline, timeOutput);
   updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
+  updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
+  updateScaleSummary(container, currentScale, selectedWaterRegion);
   updatePlayButton(playButton, isPlaying);
 
   const resize = () => {
@@ -207,6 +255,8 @@ async function initializeEarthVision(container) {
     input.addEventListener("change", () => {
       const group = groups[input.dataset.layer];
       if (group) group.visible = input.checked;
+      layerVisibility[input.dataset.layer] = input.checked;
+      updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
       setStatus(status, `${input.dataset.label || input.parentElement.textContent.trim()} layer ${input.checked ? "shown" : "hidden"}.`);
     });
   });
@@ -218,6 +268,8 @@ async function initializeEarthVision(container) {
         item.classList.toggle("is-active", item === button);
       });
       currentScale = button.dataset.scale;
+      updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
+      updateScaleSummary(container, currentScale, selectedWaterRegion);
       const preset = getCameraPreset(currentScale, selectedWaterRegion);
       if (preset) {
         cameraTween = createCameraTween(camera, controls, preset, reducedMotion);
@@ -236,6 +288,7 @@ async function initializeEarthVision(container) {
     simulationDay = Number(timeline.value);
     updateTimeDisplay(simulationDay, timeline, timeOutput);
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
     updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
     setStatus(status, `Simulated date set to ${formatSimulationDate(simulationDay)}.`);
   });
@@ -249,6 +302,8 @@ async function initializeEarthVision(container) {
     selectedObject = region;
     selectedWaterRegion = region;
     setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+    updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
+    updateScaleSummary(container, currentScale, selectedWaterRegion);
     updateInfoPanel(container, selectedWaterRegion.userData.info);
     updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
     if (currentScale !== "global") {
@@ -265,6 +320,7 @@ async function initializeEarthVision(container) {
   waterVariableSelect?.addEventListener("change", () => {
     selectedWaterVariable = waterVariableSelect.value;
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
     updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
     setStatus(status, `${WATER_VARIABLE_LABELS[selectedWaterVariable]} water-state layer selected.`);
   });
@@ -288,6 +344,8 @@ async function initializeEarthVision(container) {
       selectedWaterRegion = selectedObject;
       if (waterRegionSelect) waterRegionSelect.value = selectedWaterRegion.userData.config.id;
       setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+      updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
+      updateScaleSummary(container, currentScale, selectedWaterRegion);
       updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
       if (currentScale !== "global") {
         cameraTween = createCameraTween(
@@ -319,6 +377,8 @@ async function initializeEarthVision(container) {
       selectedWaterRegion = selectedObject;
       if (waterRegionSelect) waterRegionSelect.value = selectedWaterRegion.userData.config.id;
       setSelectedWaterRegion(waterRegions, selectedWaterRegion);
+      updateScaleDetails(currentScale, selectedWaterRegion, waterRegions, scaleDetails, layerVisibility);
+      updateScaleSummary(container, currentScale, selectedWaterRegion);
       updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, true);
       if (currentScale !== "global") {
         cameraTween = createCameraTween(
@@ -348,11 +408,16 @@ async function initializeEarthVision(container) {
     }
 
     updateObservationScene(observationPhase, satellites, uavs, flows, isPlaying && !reducedMotion);
+    updateScaleObservationLink(
+      scaleDetails.observationLink,
+      satellites,
+      selectedWaterRegion,
+      selectedWaterVariable,
+      observationPhase,
+    );
     updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+    updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
     updateWaterPanel(container, selectedWaterRegion, selectedWaterVariable, simulationDay, false);
-    if (!reducedMotion) {
-      earth.rotation.y += deltaSeconds * 0.018;
-    }
     updateCameraTween(now);
     controls.update();
     renderer.render(scene, camera);
@@ -368,7 +433,15 @@ async function initializeEarthVision(container) {
   }
 
   updateObservationScene(observationPhase, satellites, uavs, flows, false);
+  updateScaleObservationLink(
+    scaleDetails.observationLink,
+    satellites,
+    selectedWaterRegion,
+    selectedWaterVariable,
+    observationPhase,
+  );
   updateWaterScene(simulationDay, waterRegions, selectedWaterVariable);
+  updateScaleWaterDetails(scaleDetails, selectedWaterRegion, simulationDay, selectedWaterVariable);
   requestAnimationFrame(animate);
 
   window.addEventListener("pagehide", () => {
@@ -402,14 +475,16 @@ function showFallback(container, message) {
 
 function createEarth() {
   const group = new THREE.Group();
+  const surfaceTexture = createEarthSurfaceTexture();
   const ocean = new THREE.Mesh(
     new THREE.SphereGeometry(2, 64, 48),
     new THREE.MeshStandardMaterial({
-      color: 0x082c4b,
-      emissive: 0x031527,
-      emissiveIntensity: 0.7,
-      roughness: 0.76,
-      metalness: 0.18,
+      color: 0xffffff,
+      map: surfaceTexture,
+      emissive: 0x020b12,
+      emissiveIntensity: 0.32,
+      roughness: 0.82,
+      metalness: 0.08,
     }),
   );
   group.add(ocean);
@@ -432,6 +507,56 @@ function createEarth() {
   );
   group.add(atmosphere);
   return group;
+}
+
+function createEarthSurfaceTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 512;
+  const context = canvas.getContext("2d");
+
+  const oceanGradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  oceanGradient.addColorStop(0, "#0d3858");
+  oceanGradient.addColorStop(0.5, "#082d4b");
+  oceanGradient.addColorStop(1, "#061f36");
+  context.fillStyle = oceanGradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.save();
+  context.globalAlpha = 0.15;
+  for (let latitude = -60; latitude <= 60; latitude += 30) {
+    const y = ((90 - latitude) / 180) * canvas.height;
+    context.fillStyle = latitude === 0 ? "#64c9df" : "#3f8dad";
+    context.fillRect(0, y, canvas.width, 1);
+  }
+  context.restore();
+
+  const landGradient = context.createLinearGradient(0, 70, 0, 440);
+  landGradient.addColorStop(0, "#66856f");
+  landGradient.addColorStop(0.5, "#426d61");
+  landGradient.addColorStop(1, "#31584f");
+  context.fillStyle = landGradient;
+  context.strokeStyle = "#9ac8a5";
+  context.lineWidth = 1.6;
+  context.lineJoin = "round";
+
+  LAND_POLYGONS.forEach((polygon) => {
+    context.beginPath();
+    polygon.forEach(([longitude, latitude], index) => {
+      const x = ((longitude + 180) / 360) * canvas.width;
+      const y = ((90 - latitude) / 180) * canvas.height;
+      if (index === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    });
+    context.closePath();
+    context.fill();
+    context.stroke();
+  });
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
 }
 
 function createGraticuleGeometry(radius) {
@@ -519,6 +644,298 @@ function createWaterRegions(group, interactables) {
   });
 }
 
+function createScaleDetails(world, waterRegions) {
+  const root = new THREE.Group();
+  const byRegion = new Map();
+
+  waterRegions.forEach((region) => {
+    const anchor = new THREE.Group();
+    anchor.position.copy(region.position);
+    anchor.quaternion.copy(region.quaternion);
+
+    const regionalWater = new THREE.Group();
+    const basinFill = new THREE.Mesh(
+      new THREE.CircleGeometry(0.43, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0x7ad7f0,
+        transparent: true,
+        opacity: 0.14,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    const basinBoundary = new THREE.Mesh(
+      new THREE.RingGeometry(0.43, 0.465, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0x7ad7f0,
+        transparent: true,
+        opacity: 0.72,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    basinFill.position.z = 0.008;
+    basinBoundary.position.z = 0.014;
+    basinFill.renderOrder = 4;
+    basinBoundary.renderOrder = 5;
+    regionalWater.add(basinFill, basinBoundary);
+
+    const groundObservations = new THREE.Group();
+    [
+      { kind: "well", color: 0x62d7ff, x: -0.2, y: -0.12 },
+      { kind: "soil", color: 0x7dffc5, x: 0.16, y: 0.12 },
+      { kind: "river", color: 0xffce72, x: 0.2, y: -0.17 },
+    ].forEach((marker) => {
+      groundObservations.add(createScaleObservationMarker(marker));
+      const connector = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(0, 0, 0.025),
+          new THREE.Vector3(marker.x, marker.y, 0.025),
+        ]),
+        new THREE.LineBasicMaterial({
+          color: marker.color,
+          transparent: true,
+          opacity: 0.48,
+        }),
+      );
+      groundObservations.add(connector);
+    });
+
+    const uavObservation = createScaleUavObservation();
+    const localWater = createLocalWaterLayers();
+    anchor.add(regionalWater, groundObservations, uavObservation, localWater.group);
+    anchor.visible = false;
+    root.add(anchor);
+
+    byRegion.set(region.userData.config.id, {
+      anchor,
+      regionalWater,
+      basinFill,
+      basinBoundary,
+      groundObservations,
+      uavObservation,
+      localWater,
+    });
+  });
+
+  const observationLink = createScaleObservationLink();
+  root.add(observationLink.group);
+  world.add(root);
+  return { root, byRegion, observationLink };
+}
+
+function createScaleObservationMarker({ kind, color, x, y }) {
+  const marker = new THREE.Group();
+  let symbol;
+  if (kind === "well") {
+    symbol = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.018, 0.026, 0.15, 10),
+      new THREE.MeshBasicMaterial({ color }),
+    );
+    symbol.rotation.x = Math.PI / 2;
+  } else if (kind === "soil") {
+    symbol = new THREE.Mesh(
+      new THREE.BoxGeometry(0.085, 0.085, 0.055),
+      new THREE.MeshBasicMaterial({ color }),
+    );
+  } else {
+    symbol = new THREE.Mesh(
+      new THREE.ConeGeometry(0.055, 0.12, 12),
+      new THREE.MeshBasicMaterial({ color }),
+    );
+    symbol.rotation.x = Math.PI / 2;
+  }
+  symbol.position.z = 0.075;
+  const halo = new THREE.Mesh(
+    new THREE.RingGeometry(0.055, 0.075, 20),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.62,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+  );
+  halo.position.z = 0.028;
+  marker.position.set(x, y, 0);
+  marker.add(symbol, halo);
+  return marker;
+}
+
+function createScaleUavObservation() {
+  const group = new THREE.Group();
+  const material = new THREE.MeshBasicMaterial({ color: 0xff8fc7 });
+  const armGeometry = new THREE.BoxGeometry(0.18, 0.018, 0.018);
+  const armA = new THREE.Mesh(armGeometry, material);
+  const armB = armA.clone();
+  armA.rotation.z = Math.PI / 4;
+  armB.rotation.z = -Math.PI / 4;
+  const footprint = new THREE.Mesh(
+    new THREE.RingGeometry(0.11, 0.14, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xff8fc7,
+      transparent: true,
+      opacity: 0.42,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+  );
+  group.position.set(-0.08, 0.27, 0.12);
+  footprint.position.set(0, -0.1, -0.08);
+  group.add(armA, armB, footprint);
+  return group;
+}
+
+function createLocalWaterLayers() {
+  const group = new THREE.Group();
+  group.position.set(0.02, 0, 0.04);
+  const definitions = {
+    surfaceWater: { geometry: new THREE.RingGeometry(0.3, 0.36, 44), z: 0.055 },
+    soilMoisture: { geometry: new THREE.RingGeometry(0.21, 0.27, 44), z: 0.045 },
+    groundwater: { geometry: new THREE.CircleGeometry(0.15, 44), z: 0.035 },
+  };
+  const layers = {};
+  Object.entries(definitions).forEach(([variable, definition]) => {
+    const mesh = new THREE.Mesh(
+      definition.geometry,
+      new THREE.MeshBasicMaterial({
+        color: 0x7ad7f0,
+        transparent: true,
+        opacity: 0.58,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    mesh.position.z = definition.z;
+    mesh.renderOrder = 7;
+    group.add(mesh);
+    layers[variable] = mesh;
+  });
+  return { group, layers };
+}
+
+function createScaleObservationLink() {
+  const group = new THREE.Group();
+  const positions = new Float32Array(25 * 3);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const line = new THREE.Line(
+    geometry,
+    new THREE.LineBasicMaterial({
+      color: 0x5ee8ff,
+      transparent: true,
+      opacity: 0.58,
+    }),
+  );
+  const pulse = new THREE.Mesh(
+    new THREE.SphereGeometry(0.045, 12, 10),
+    new THREE.MeshBasicMaterial({ color: 0x5ee8ff }),
+  );
+  group.add(line, pulse);
+  group.visible = false;
+  return { group, line, pulse };
+}
+
+function updateScaleDetails(scale, selectedRegion, waterRegions, details, visibility) {
+  waterRegions.forEach((region) => {
+    region.visible = scale === "global" || region === selectedRegion;
+  });
+
+  details.byRegion.forEach((detail, regionId) => {
+    const isCurrent = regionId === selectedRegion.userData.config.id;
+    detail.anchor.visible = isCurrent && scale !== "global";
+    detail.regionalWater.visible = visibility.waterStates;
+    detail.groundObservations.visible = visibility.ground;
+    detail.uavObservation.visible = visibility.uav;
+    detail.localWater.group.visible = visibility.waterStates && scale === "local";
+  });
+
+  details.observationLink.group.visible = scale !== "global"
+    && visibility.satellites
+    && visibility.dataFlows;
+}
+
+function updateScaleWaterDetails(details, selectedRegion, day, selectedVariable) {
+  const detail = details.byRegion.get(selectedRegion.userData.config.id);
+  if (!detail) return;
+  const state = calculateWaterState(selectedRegion.userData.config, day);
+  const selectedValue = state[selectedVariable];
+  applyWaterColor(detail.basinFill.material, selectedValue);
+  detail.basinFill.material.opacity = 0.1 + Math.abs(selectedValue) * 0.22;
+  detail.basinBoundary.material.color.copy(detail.basinFill.material.color);
+  detail.basinBoundary.material.opacity = 0.56 + Math.abs(selectedValue) * 0.34;
+
+  Object.entries(detail.localWater.layers).forEach(([variable, mesh]) => {
+    const value = state[variable];
+    applyWaterColor(mesh.material, value);
+    mesh.material.opacity = 0.42 + Math.abs(value) * 0.42;
+    mesh.scale.setScalar(0.9 + Math.abs(value) * 0.28);
+  });
+}
+
+function updateScaleObservationLink(link, satellites, selectedRegion, variable, observationPhase) {
+  const satelliteIndex = variable === "surfaceWater" ? 0 : variable === "soilMoisture" ? 1 : 2;
+  const satellite = satellites[satelliteIndex];
+  if (!satellite) return;
+  const start = satellite.position;
+  const end = selectedRegion.position.clone().normalize().multiplyScalar(2.09);
+  const midpoint = start.clone().add(end).multiplyScalar(0.5).normalize().multiplyScalar(3.45);
+  const positionAttribute = link.line.geometry.getAttribute("position");
+
+  for (let index = 0; index < positionAttribute.count; index += 1) {
+    const t = index / (positionAttribute.count - 1);
+    const inverse = 1 - t;
+    const startWeight = inverse * inverse;
+    const middleWeight = 2 * inverse * t;
+    const endWeight = t * t;
+    positionAttribute.setXYZ(
+      index,
+      start.x * startWeight + midpoint.x * middleWeight + end.x * endWeight,
+      start.y * startWeight + midpoint.y * middleWeight + end.y * endWeight,
+      start.z * startWeight + midpoint.z * middleWeight + end.z * endWeight,
+    );
+  }
+  positionAttribute.needsUpdate = true;
+  link.line.geometry.computeBoundingSphere();
+
+  const pulseT = (observationPhase * 4) % 1;
+  const inversePulse = 1 - pulseT;
+  const pulseStartWeight = inversePulse * inversePulse;
+  const pulseMiddleWeight = 2 * inversePulse * pulseT;
+  const pulseEndWeight = pulseT * pulseT;
+  link.pulse.position.set(
+    start.x * pulseStartWeight + midpoint.x * pulseMiddleWeight + end.x * pulseEndWeight,
+    start.y * pulseStartWeight + midpoint.y * pulseMiddleWeight + end.y * pulseEndWeight,
+    start.z * pulseStartWeight + midpoint.z * pulseMiddleWeight + end.z * pulseEndWeight,
+  );
+  link.line.material.color.setHex(satellite.userData.config.color);
+  link.pulse.material.color.setHex(satellite.userData.config.color);
+}
+
+function updateScaleSummary(container, scale, selectedRegion) {
+  const title = container.querySelector("[data-scale-summary-title]");
+  const description = container.querySelector("[data-scale-summary-description]");
+  const localLayerKey = container.querySelector("[data-local-layer-key]");
+  const regionName = selectedRegion.userData.config.name;
+  const summaries = {
+    global: {
+      title: "Global synthesis",
+      description: "Compare four synthetic water regions with satellite, ground, UAV, and low-altitude observing systems.",
+    },
+    regional: {
+      title: `${regionName} · Regional network`,
+      description: "A basin footprint links the selected water state to a groundwater well, soil sensor, river gauge, UAV survey, and relevant satellite overpass.",
+    },
+    local: {
+      title: `${regionName} · Local process view`,
+      description: "Concentric surface-water, soil-moisture, and groundwater layers change with the selected date while nearby sensors retain their regional context.",
+    },
+  };
+  if (title) title.textContent = summaries[scale].title;
+  if (description) description.textContent = summaries[scale].description;
+  if (localLayerKey) localLayerKey.hidden = scale !== "local";
+}
+
 function calculateWaterState(config, day) {
   const normalizedDay = ((day % 365) + 365) % 365;
   const seasonalWave = (lag = 0) => Math.cos(
@@ -581,6 +998,14 @@ function validateWaterModel(configs) {
   });
 }
 
+function applyWaterColor(material, value) {
+  material.color.copy(WATER_NORMAL_COLOR);
+  material.color.lerp(
+    value < 0 ? WATER_DRY_COLOR : WATER_WET_COLOR,
+    Math.abs(value),
+  );
+}
+
 function updateWaterScene(day, regions, variable) {
   regions.forEach((region) => {
     const state = calculateWaterState(region.userData.config, day);
@@ -588,11 +1013,7 @@ function updateWaterScene(day, regions, variable) {
     const magnitude = Math.abs(value);
     region.userData.currentState = state;
     region.userData.currentValue = value;
-    region.userData.fill.material.color.copy(WATER_NORMAL_COLOR);
-    region.userData.fill.material.color.lerp(
-      value < 0 ? WATER_DRY_COLOR : WATER_WET_COLOR,
-      magnitude,
-    );
+    applyWaterColor(region.userData.fill.material, value);
     region.userData.fill.material.opacity = 0.38 + magnitude * 0.34;
     region.userData.ring.material.color.copy(region.userData.fill.material.color);
     region.userData.ring.material.opacity = region.userData.isSelected ? 0.95 : 0.25 + magnitude * 0.28;
