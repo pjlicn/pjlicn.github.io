@@ -13,6 +13,8 @@ author_profile: true
 - [Soil Water Retention Models Dataset](https://doi.org/10.7910/DVN/L0XVBG): Data supporting a family of soil-water-retention models based on sigmoid functions.
 - [Cross-scale Parameter Transfer Dataset](https://doi.org/10.7910/DVN/8VJDPT): Data supporting scale conversion and pedo-transfer-function estimation.
 - [Streamflow Simulations with Differentiable HBV and LSTM Models](https://zenodo.org/records/16895228): Streamflow simulation data using CAMELS datasets.
+- SMAP Soil-Moisture Modeling (Under review): A differentiable HBV and LSTM framework for integrating SMAP soil-moisture observations with process-based hydrologic modeling.
+- SWOT-informed Streamflow Modeling (Under review): A streamflow modeling framework integrating gauge discharge with SWOT water-surface-elevation constraints.
 
 ## Previous research projects
 
