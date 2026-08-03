@@ -15,6 +15,7 @@ author_profile: true
 - [Streamflow Simulations with Differentiable HBV and LSTM Models](https://zenodo.org/records/16895228): Streamflow simulation data using CAMELS datasets.
 - SMAP Soil-Moisture Modeling (Under review): A differentiable HBV and LSTM framework for integrating SMAP soil-moisture observations with process-based hydrologic modeling.
 - SWOT-informed Streamflow Modeling (Under review): A streamflow modeling framework integrating gauge discharge with SWOT water-surface-elevation constraints.
+- Reservoir Operations Modeling (In development): A data-informed framework for modeling reservoir operations and reservoir-influenced streamflow.
 
 ## Previous research projects
 
