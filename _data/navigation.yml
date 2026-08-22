@@ -1,0 +1,25 @@
+# main links links
+main:
+  - title: "Home"
+    url: /
+
+  - title: "Research"
+    url: /research/
+  
+  - title: "Resume"
+    url: /cv/
+  
+  - title: "Publications"
+    url: /publications/
+    
+  - title: "Projects"
+    url: /projects/
+
+#  - title: "Talks"
+#    url: /talks/    
+#    
+#  - title: "Gallery"
+#    url: /portfolio/
+    
+  - title: "Contacts"
+    url: /contacts/

@@ -1,0 +1,31 @@
+---
+layout: default
+---
+
+{% include base_path %}
+
+<div id="main" class="earth-vision-shell" role="main">
+  <article class="earth-vision-page" itemscope itemtype="https://schema.org/CreativeWork">
+    <header class="earth-vision-page__header">
+      <p class="earth-vision-page__eyebrow">Interactive research vision</p>
+      <h1 class="earth-vision-page__title" itemprop="headline">{{ page.title }}</h1>
+      {% if page.description %}
+        <p class="earth-vision-page__lead" itemprop="description">{{ page.description }}</p>
+      {% endif %}
+    </header>
+
+    <div class="earth-vision-page__content" itemprop="text">
+      {{ content }}
+    </div>
+  </article>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="{{ base_path }}/assets/js/earth-vision.js"></script>
