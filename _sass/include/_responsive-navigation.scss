@@ -1,0 +1,37 @@
+/* Responsive corrections for the original Academic Pages greedy navigation. */
+
+.greedy-nav {
+  min-width: 0;
+
+  > button {
+    right: 0.25rem;
+    min-width: 2.5rem;
+    z-index: 120;
+  }
+
+  > button:not(.hidden) {
+    display: block;
+  }
+
+  .hidden-links {
+    z-index: 115;
+  }
+}
+
+/* The original plugin measures the actual visible-links width. Do not reserve
+   a fixed mobile width or force all links into the dropdown. */
+@media screen and (max-width: 760px) {
+  .greedy-nav {
+    padding-right: 0;
+
+    .visible-links {
+      max-width: none;
+    }
+  }
+}
+
+/* main.min.js toggles .open on the Follow button. */
+.author__urls-wrapper button.open + .author__urls {
+  display: block;
+  z-index: 30;
+}
